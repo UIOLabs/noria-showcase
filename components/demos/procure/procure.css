@@ -1,0 +1,64 @@
+/* Noria Procure — product-scoped identity.
+   The product keeps its red-accent SaaS language; every value is defined for
+   both showcase themes so the demo reads polished in light AND dark. */
+
+.demo-procure {
+  --pr-brand: #d02f40; /* deepened red for contrast on light surfaces */
+  --pr-brand-strong: #b8202e;
+  --pr-brand-ink: #ffffff;
+  --pr-brand-soft: #fdeef0;
+  --pr-brand-border: #f3c6cc;
+  --pr-hero-grad: linear-gradient(135deg, #e33645 0%, #99202d 55%, #6d1520 100%);
+  --pr-dark-panel: #171a21; /* console / decision cards stay dark in both themes */
+  --pr-dark-panel-2: #10131a;
+  --pr-dark-ink: #f2f4f8;
+  --pr-dark-mute: #9aa3b2;
+  --pr-ok-soft: #e8f6ee;
+  --pr-warn-soft: #fff3d6;
+  --pr-danger-soft: #fdebed;
+  --pr-info-soft: #eaf2ff;
+}
+
+[data-theme="dark"] .demo-procure {
+  --pr-brand: #f0566b;
+  --pr-brand-strong: #e33645;
+  --pr-brand-ink: #14060a;
+  --pr-brand-soft: color-mix(in oklab, #e33645 16%, var(--surface));
+  --pr-brand-border: color-mix(in oklab, #e33645 38%, transparent);
+  --pr-hero-grad: linear-gradient(135deg, #a92836 0%, #5f141e 60%, #3a0c13 100%);
+  --pr-dark-panel: #12151c;
+  --pr-dark-panel-2: #0c0f15;
+  --pr-ok-soft: color-mix(in oklab, var(--ok) 14%, var(--surface));
+  --pr-warn-soft: color-mix(in oklab, var(--warn) 14%, var(--surface));
+  --pr-danger-soft: color-mix(in oklab, var(--danger) 14%, var(--surface));
+  --pr-info-soft: color-mix(in oklab, var(--info) 14%, var(--surface));
+}
+
+/* Terminal console */
+.demo-procure .pr-console {
+  background: var(--pr-dark-panel);
+  color: var(--pr-dark-ink);
+}
+.demo-procure .pr-console-body {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+
+/* AI output box — the visual cue that content is AI-generated */
+.demo-procure .pr-ai-output {
+  background: var(--pr-brand-soft);
+  border: 1px solid var(--pr-brand-border);
+}
+
+/* Active nav item: soft wash + inset brand bar */
+.demo-procure .pr-nav-active {
+  background: var(--pr-brand-soft);
+  box-shadow: inset 3px 0 0 var(--pr-brand);
+}
+
+/* Quote card selection ring */
+.demo-procure .pr-quote-selected {
+  border-color: var(--pr-brand) !important;
+  box-shadow: 0 0 0 1px var(--pr-brand);
+}

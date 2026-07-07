@@ -1,0 +1,89 @@
+/* Noria Dispatch — scoped demo styles. Near-monochrome: the shell tokens are
+   the product's palette; emerald/amber/rose appear only as status. */
+
+.demo-dispatch table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.demo-dispatch th {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-weight: 500;
+  text-align: left;
+  padding: 14px 12px 8px;
+  white-space: nowrap;
+}
+
+/* Rows host an absolutely-positioned progress sliver. */
+.demo-dispatch tbody tr {
+  position: relative;
+}
+
+.demo-dispatch td {
+  padding: 10px 12px;
+  font-size: 13px;
+  border-top: 1px solid var(--hairline);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.demo-dispatch tbody tr.dd-row {
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.demo-dispatch tbody tr.dd-row:hover {
+  background: color-mix(in oklab, var(--ink) 4%, transparent);
+}
+
+/* In-flight row progress sliver — grows along the bottom edge. */
+.demo-dispatch .dd-sliver {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  transition: width 1s linear, background-color 400ms;
+}
+
+/* Range slider */
+.demo-dispatch input[type="range"] {
+  accent-color: var(--accent);
+  width: 100%;
+}
+
+.demo-dispatch pre {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.demo-dispatch select,
+.demo-dispatch input[type="text"],
+.demo-dispatch input[type="time"] {
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--ink);
+  width: 100%;
+  transition: border-color 150ms;
+}
+
+.demo-dispatch select:focus,
+.demo-dispatch input[type="text"]:focus,
+.demo-dispatch input[type="time"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.demo-dispatch select option {
+  background: var(--surface);
+  color: var(--ink);
+}
