@@ -1,2 +1,5 @@
+# sharp is Next's optional image-optimization binary. This site is a static
+# export with no next/image usage, so its build script is deliberately denied
+# (it attempts a node-gyp source build when no prebuilt binary matches).
 allowBuilds:
-  sharp: set this to true or false
+  sharp: false
