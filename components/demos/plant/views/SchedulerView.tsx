@@ -28,6 +28,7 @@ type PlazoFilter = "Todas" | "≤ 7 días" | "Atrasadas";
 type EstadoFilter = "Todas" | "En producción" | "Por crear OP" | "Cotizado";
 
 const ZOOMS = [26, 40, 56];
+const QUEUE_CAP = 5;
 
 type Placed = PlanOrder & {
   activeSegments: { stage: Stage; machine: string; start: number; dur: number }[];
@@ -50,6 +51,7 @@ export function SchedulerView() {
   const [stageFilter, setStageFilter] = useState<"ALL" | Stage>("ALL");
   const [zoom, setZoom] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [queueExpanded, setQueueExpanded] = useState(false);
   const [shifts, setShifts] = useState<Record<string, number>>({});
   const [urgent, setUrgent] = useState<Record<string, boolean>>({});
 
@@ -212,7 +214,7 @@ export function SchedulerView() {
               ))}
             </div>
             <div className="space-y-2">
-              {queue.map((o) => (
+              {(queueExpanded ? queue : queue.slice(0, QUEUE_CAP)).map((o) => (
                 <button
                   key={o.id}
                   type="button"
@@ -240,6 +242,15 @@ export function SchedulerView() {
                 <div className="rounded-xl border border-dashed border-hairline p-6 text-center text-[13px] text-mute">
                   Sin órdenes con estos filtros.
                 </div>
+              )}
+              {queue.length > QUEUE_CAP && (
+                <button
+                  type="button"
+                  onClick={() => setQueueExpanded((e) => !e)}
+                  className="w-full rounded-xl border border-dashed border-hairline px-3 py-2 text-[12px] text-mute transition-colors hover:border-ink/30 hover:text-ink"
+                >
+                  {queueExpanded ? "Ver menos" : `Ver ${queue.length - QUEUE_CAP} más`}
+                </button>
               )}
             </div>
           </Panel>
@@ -318,7 +329,7 @@ export function SchedulerView() {
 
                 {/* Timeline */}
                 <div className="min-w-0 flex-1 overflow-x-auto">
-                  <div style={{ width: HORIZON_DAYS * dayW }}>
+                  <div style={{ minWidth: HORIZON_DAYS * dayW }}>
                     {/* Day headers */}
                     <div className="relative flex h-9 border-b border-hairline">
                       {Array.from({ length: HORIZON_DAYS }, (_, d) => {
@@ -326,8 +337,8 @@ export function SchedulerView() {
                         return (
                           <div
                             key={d}
-                            className="flex shrink-0 flex-col items-center justify-center border-r border-hairline font-mono text-[9px] leading-tight text-mute"
-                            style={{ width: dayW, background: dl.weekend ? "color-mix(in oklab, var(--ink) 4%, transparent)" : undefined }}
+                            className="flex flex-col items-center justify-center border-r border-hairline font-mono text-[9px] leading-tight text-mute"
+                            style={{ width: `${100 / HORIZON_DAYS}%`, background: dl.weekend ? "color-mix(in oklab, var(--ink) 4%, transparent)" : undefined }}
                           >
                             <span>{dl.dow}</span>
                             <span>{dl.date}</span>
@@ -347,7 +358,7 @@ export function SchedulerView() {
                                 <span
                                   key={d}
                                   className="absolute inset-y-0"
-                                  style={{ left: d * dayW, width: dayW, background: "color-mix(in oklab, var(--ink) 4%, transparent)" }}
+                                  style={{ left: `${(d / HORIZON_DAYS) * 100}%`, width: `${100 / HORIZON_DAYS}%`, background: "color-mix(in oklab, var(--ink) 4%, transparent)" }}
                                 />
                               ) : null
                             )}
@@ -366,8 +377,8 @@ export function SchedulerView() {
                                     data-late={o.late}
                                     data-urgent={o.urgent}
                                     style={{
-                                      left: seg.start * dayW + 1,
-                                      width: seg.dur * dayW - 3,
+                                      left: `calc(${(seg.start / HORIZON_DAYS) * 100}% + 1px)`,
+                                      width: `calc(${(seg.dur / HORIZON_DAYS) * 100}% - 3px)`,
                                       background: stageByKey(seg.stage).color,
                                       color: stageByKey(seg.stage).ink,
                                     }}
