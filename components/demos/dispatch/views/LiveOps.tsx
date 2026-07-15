@@ -36,13 +36,13 @@ export function LiveOps({ board, runningCampaigns }: { board: Board; runningCamp
   return (
     <div>
       <PageHead
-        eyebrow="Operations"
-        title="Live ops"
-        desc="Every in-flight call, as it happens. Dialing stops the instant a human connects."
+        eyebrow="Operaciones"
+        title="Operación en vivo"
+        desc="Cada llamada en curso, en tiempo real. La marcación se detiene cuando una persona responde."
         actions={
           <span className="inline-flex items-center gap-2 rounded-full border border-hairline px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/80">
             <span className="h-1.5 w-1.5 rounded-full animate-dot-pulse" style={{ background: "var(--ok)" }} />
-            live
+            en vivo
           </span>
         }
       />
@@ -50,10 +50,10 @@ export function LiveOps({ board, runningCampaigns }: { board: Board; runningCamp
       {/* Stat strip */}
       <div className="mb-8 grid grid-cols-2 divide-x divide-[var(--hairline)] rounded-2xl border border-hairline md:grid-cols-4">
         {[
-          { label: "Running", value: String(runningCampaigns) },
-          { label: "Queued", value: board.queued.toLocaleString("en-US") },
-          { label: "In flight", value: String(board.calls.length) },
-          { label: "Attempts today", value: board.attemptsToday.toLocaleString("en-US") },
+          { label: "Activas", value: String(runningCampaigns) },
+          { label: "En cola", value: board.queued.toLocaleString("es-MX") },
+          { label: "En curso", value: String(board.calls.length) },
+          { label: "Intentos hoy", value: board.attemptsToday.toLocaleString("es-MX") },
         ].map((s) => (
           <div key={s.label} className="px-5 py-4">
             <p className="text-[11px] text-mute">{s.label}</p>
@@ -65,20 +65,20 @@ export function LiveOps({ board, runningCampaigns }: { board: Board; runningCamp
       <div className="grid gap-8 lg:grid-cols-[1fr_290px]">
         {/* In-flight table */}
         <div className="relative min-w-0">
-          <Spotlight note="Each row is a live AI call — the sliver turns amber past 60s and rose past 120s. Calls end and new ones dial automatically." align="left" className="!-left-4 !-top-3" />
+          <Spotlight note="Cada fila es una llamada de IA en vivo: el indicador cambia a ámbar después de 60 s y a rojo después de 120 s. Las llamadas terminan y otras comienzan automáticamente." align="left" className="!-left-4 !-top-3" />
           <SectionLabel
-            accessory={<span className="font-mono text-[10px] text-mute">{board.calls.length} active</span>}
+            accessory={<span className="font-mono text-[10px] text-mute">{board.calls.length} activas</span>}
           >
-            In-flight calls
+            Llamadas en curso
           </SectionLabel>
           <div className="overflow-x-auto rounded-2xl border border-hairline">
             <table>
               <thead>
                 <tr>
-                  <th className="pt-3">Debtor</th>
-                  <th className="pt-3">Number</th>
-                  <th className="pt-3">Campaign</th>
-                  <th className="pt-3 text-right">Elapsed</th>
+                  <th className="pt-3">Deudor</th>
+                  <th className="pt-3">Número</th>
+                  <th className="pt-3">Campaña</th>
+                  <th className="pt-3 text-right">Transcurrido</th>
                 </tr>
               </thead>
               <tbody>
@@ -103,25 +103,25 @@ export function LiveOps({ board, runningCampaigns }: { board: Board; runningCamp
             </table>
           </div>
           <p className="mt-2 text-[11px] text-mute">
-            Rows churn on a simulated dispatcher tick — outcomes land in the breakdown on the right.
+            Las filas se actualizan con un ciclo simulado; los resultados aparecen en el desglose de la derecha.
           </p>
         </div>
 
         {/* Right rail */}
         <div className="flex min-w-0 flex-col gap-7">
           <div>
-            <SectionLabel accessory={<span className="font-mono text-[10px] text-mute">per 30s</span>}>
-              Throughput
+            <SectionLabel accessory={<span className="font-mono text-[10px] text-mute">cada 30 s</span>}>
+              Rendimiento
             </SectionLabel>
             <p className="mb-2 font-mono text-3xl tabular-nums">
-              {board.attemptsToday.toLocaleString("en-US")}
-              <span className="ml-2 text-[11px] text-mute">attempts today</span>
+              {board.attemptsToday.toLocaleString("es-MX")}
+              <span className="ml-2 text-[11px] text-mute">intentos hoy</span>
             </p>
             <SparkBars values={board.buckets} color="var(--accent)" height={44} flashKey={board.attemptsToday} />
           </div>
 
           <div>
-            <SectionLabel>Outcomes today</SectionLabel>
+            <SectionLabel>Resultados de hoy</SectionLabel>
             <StackedBar
               segments={OUTCOMES.map((o) => ({
                 label: OUTCOME_META[o].label,
@@ -146,16 +146,16 @@ export function LiveOps({ board, runningCampaigns }: { board: Board; runningCamp
           </div>
 
           <div>
-            <SectionLabel>Health</SectionLabel>
+            <SectionLabel>Estado del sistema</SectionLabel>
             <div className="flex flex-col gap-2.5 rounded-2xl border border-hairline p-4">
               <div className="flex items-center justify-between">
-                <span className="text-[12px] text-mute">Dispatcher</span>
-                <StatusChip tone="ok" label="healthy" pulse />
+                <span className="text-[12px] text-mute">Despachador</span>
+                <StatusChip tone="ok" label="operativo" pulse />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[12px] text-mute">Voice provider</span>
+                <span className="text-[12px] text-mute">Proveedor de voz</span>
                 <span className="font-mono text-[12px] tabular-nums">
-                  {board.calls.length} / 20 concurrency
+                  {board.calls.length} / 20 simultáneas
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -166,7 +166,7 @@ export function LiveOps({ board, runningCampaigns }: { board: Board; runningCamp
           </div>
 
           <div>
-            <SectionLabel>Connected · this session</SectionLabel>
+            <SectionLabel>Conectadas · esta sesión</SectionLabel>
             <ul className="flex flex-col">
               {board.connected.map((c) => (
                 <li key={`${c.phone}-${c.atTick}`} className="flex items-center gap-2.5 border-t border-hairline py-2.5 first:border-t-0">

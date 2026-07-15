@@ -152,7 +152,7 @@ export function SchedulerView() {
           {(
             [
               ["plan", "Planificador"],
-              ["real", "vs Realidad"],
+              ["real", "Comparación real"],
             ] as const
           ).map(([k, label]) => (
             <button
@@ -257,7 +257,7 @@ export function SchedulerView() {
 
           {/* Gantt */}
           <div className="relative min-w-0">
-            <Spotlight note="A finite-capacity plan: every bar respects real machine speed and availability. Drag-free — click any bar to act on it." />
+            <Spotlight note="Un plan de capacidad finita: cada barra respeta la velocidad y disponibilidad reales de la máquina. Haz clic en una barra para actuar." />
             <Panel
               title="Plan de producción · 14 días"
               accessory={
@@ -292,7 +292,7 @@ export function SchedulerView() {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-hairline px-4 py-2 font-mono text-[10px] text-mute">
                 <span>Plan #P-2606-14</span>
                 <span>generado hace 12 min</span>
-                <span>sync hace 4 min</span>
+                <span>sincronizado hace 4 min</span>
                 <span style={{ color: stats.tarde > 0 ? "var(--warn)" : "var(--ok)" }}>
                   {Math.round(((stats.conPlan - stats.tarde) / Math.max(stats.conPlan, 1)) * 100)}% a tiempo
                 </span>
@@ -533,7 +533,7 @@ function VsRealidad() {
       <div className="relative">
         <Spotlight
           align="right"
-          note="A 90-day backtest: the same order book replayed with the scheduler's plan vs what actually happened."
+          note="Una validación de 90 días: las mismas órdenes se simulan con el planificador y se comparan con lo que ocurrió en realidad."
         />
         <div className="pl-panel grid gap-px overflow-hidden bg-[var(--hairline)] md:grid-cols-3">
           {[
@@ -623,7 +623,7 @@ function VsRealidad() {
       </div>
 
       {/* Top saved */}
-      <Panel title="Top órdenes salvadas por el algoritmo" bodyClassName="overflow-x-auto">
+      <Panel title="Principales órdenes salvadas por el algoritmo" bodyClassName="overflow-x-auto">
         <table className="pl-table">
           <thead>
             <tr>

@@ -45,9 +45,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Noria — Product Lines",
+  title: "Noria — Líneas de producto",
   description:
-    "Working demos of three Noria-built products: procurement copilot, manufacturing control, AI voice operations.",
+    "Demos funcionales de tres productos creados por Noria: copiloto de compras, control de manufactura y operaciones de voz con IA.",
 };
 
 // Runs before paint: restore the persisted theme (or system preference) so
@@ -61,7 +61,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geist.variable} ${fraunces.variable} ${jetbrains.variable} ${spaceGrotesk.variable} ${archivo.variable}`}
       data-theme="dark"
       suppressHydrationWarning

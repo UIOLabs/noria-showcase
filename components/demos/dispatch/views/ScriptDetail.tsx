@@ -27,9 +27,9 @@ export function ScriptDetail() {
   return (
     <div className="max-w-3xl">
       <PageHead
-        eyebrow="Scripts"
+        eyebrow="Guiones"
         title={SCRIPT.name}
-        desc="What the AI voice agent says, hears, and extracts — versioned like code."
+        desc="Lo que el agente de voz con IA dice, escucha y extrae, versionado como código."
         actions={
           <div className="flex items-center gap-3">
             <span className="font-mono text-[12px] text-mute">v{SCRIPT.version}</span>
@@ -40,7 +40,7 @@ export function ScriptDetail() {
 
       <section className="mb-8">
         <SectionLabel accessory={<span className="font-mono text-[10px] text-mute">{SCRIPT.language}</span>}>
-          Body
+          Contenido
         </SectionLabel>
         <HighlightedBody body={SCRIPT.body} />
       </section>
@@ -57,10 +57,10 @@ export function ScriptDetail() {
       </section>
 
       <section className="mb-8">
-        <SectionLabel>Voice &amp; timing</SectionLabel>
+        <SectionLabel>Voz y tiempos</SectionLabel>
         <div className="grid grid-cols-2 gap-x-8 md:grid-cols-3">
-          <KV k="Voice" v={SCRIPT.voice} />
-          <KV k="Language" v={SCRIPT.language} />
+          <KV k="Voz" v={SCRIPT.voice} />
+          <KV k="Idioma" v={SCRIPT.language} />
           {SCRIPT.timing.map((t) => (
             <KV key={t.label} k={t.label} v={t.value} />
           ))}
@@ -82,8 +82,8 @@ export function ScriptDetail() {
       </section>
 
       <section className="mb-8">
-        <SectionLabel>Speech recognition</SectionLabel>
-        <p className="mb-2 text-[12px] text-mute">Boosted keywords — names the agent must hear correctly:</p>
+        <SectionLabel>Reconocimiento de voz</SectionLabel>
+        <p className="mb-2 text-[12px] text-mute">Palabras reforzadas que el agente debe reconocer correctamente:</p>
         <div className="mb-4 flex flex-wrap gap-2">
           {SCRIPT.keywords.map((k) => (
             <span key={k} className="rounded-full border border-hairline px-3 py-1 font-mono text-[11px]">
@@ -106,11 +106,11 @@ export function ScriptDetail() {
 
       <section className="relative mb-8">
         <Spotlight
-          note="These seven fields are extracted from every conversation as structured data — no human listens to routine calls."
+          note="Estos siete campos se extraen de cada conversación como datos estructurados, sin que una persona escuche las llamadas rutinarias."
           align="right"
         />
-        <SectionLabel accessory={<span className="font-mono text-[10px] text-mute">{SCRIPT.schema.length} fields</span>}>
-          Post-call analysis schema
+        <SectionLabel accessory={<span className="font-mono text-[10px] text-mute">{SCRIPT.schema.length} campos</span>}>
+          Esquema de análisis posterior
         </SectionLabel>
         <div className="rounded-xl border border-hairline">
           {SCRIPT.schema.map((f, i) => (
@@ -128,7 +128,7 @@ export function ScriptDetail() {
       </section>
 
       <section>
-        <SectionLabel>Version history</SectionLabel>
+        <SectionLabel>Historial de versiones</SectionLabel>
         <ol className="flex flex-col">
           {SCRIPT.versions.map((v) => (
             <li key={v.v} className="flex items-baseline gap-4 border-t border-hairline py-2.5 first:border-t-0">

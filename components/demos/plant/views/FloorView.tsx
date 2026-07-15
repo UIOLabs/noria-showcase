@@ -128,7 +128,7 @@ export function FloorView() {
       <div className="relative">
         <Spotlight
           align="right"
-          note="The five-stage flow mirrors the real production route. Health dots react to machine load and downtime."
+          note="El flujo de cinco etapas refleja la ruta real de producción. Los indicadores responden a la carga y a las paradas de las máquinas."
         />
         <div className="flex flex-col items-stretch gap-2 xl:flex-row xl:items-center">
           {stageStats.map((s, i) => (

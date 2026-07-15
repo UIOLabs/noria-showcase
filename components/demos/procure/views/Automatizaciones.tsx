@@ -82,7 +82,7 @@ function Simulator() {
     <div className="relative xl:sticky xl:top-24">
       <Spotlight
         align="right"
-        note="Create a rule, then simulate the same purchase arriving again — it approves itself."
+        note="Crea una regla y simula que la misma compra vuelve a llegar: se aprobará automáticamente."
       />
       <div
         className="overflow-hidden rounded-2xl p-6 transition-colors duration-500"

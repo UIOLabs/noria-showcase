@@ -19,28 +19,28 @@ export const PRODUCTS: Product[] = [
     slug: "procure",
     tab: "Procure",
     name: "Noria Procure",
-    kicker: "Procurement copilot",
+    kicker: "Copiloto de compras",
     tagline:
-      "Turns ERP purchase requests into explained, auditable decisions.",
+      "Convierte solicitudes de compra del ERP en decisiones explicadas y auditables.",
     demoLang: "ES",
   },
   {
     slug: "plant",
     tab: "Plant OS",
     name: "Noria Plant OS",
-    kicker: "Manufacturing control",
+    kicker: "Control de manufactura",
     tagline:
-      "Live factory floor, finite-capacity scheduling, and margin analytics in one place.",
+      "Planta en vivo, planificación de capacidad finita y análisis de márgenes en un solo lugar.",
     demoLang: "ES",
   },
   {
     slug: "dispatch",
     tab: "Dispatch",
     name: "Noria Dispatch",
-    kicker: "AI voice operations",
+    kicker: "Operaciones de voz con IA",
     tagline:
-      "AI voice agents place outbound calls; humans take over the moment someone answers.",
-    demoLang: "EN",
+      "Agentes de voz con IA realizan llamadas salientes; una persona toma el control en cuanto alguien responde.",
+    demoLang: "ES",
   },
 ];
 

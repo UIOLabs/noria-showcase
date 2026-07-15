@@ -27,11 +27,11 @@ export function PlantDemo() {
       <div className="demo-plant mx-auto max-w-[1600px] px-4 py-6 md:px-8" lang="es">
         <IntroPanel
           kicker="Noria Plant OS"
-          title="Manufacturing control for a flexible-packaging factory"
+          title="Control de manufactura para una fábrica de empaques flexibles"
           points={[
-            "Mirrors the factory's ERP into a live floor view.",
-            "The scheduler plans against real machine capacity — 'vs Realidad' backtests it.",
-            "Every record here is demo data.",
+            "Refleja el ERP de la fábrica en una vista de planta en vivo.",
+            "El planificador considera la capacidad real de las máquinas y la valida contra la realidad.",
+            "Todos los registros contienen datos de demostración.",
           ]}
         />
 

@@ -33,7 +33,7 @@ export function Spotlight({
       <button
         type="button"
         aria-describedby={open ? id : undefined}
-        aria-label="Feature note"
+        aria-label="Nota de la función"
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onClick={() => setOpen((v) => !v)}
@@ -54,7 +54,7 @@ export function Spotlight({
               align === "right" ? "right-0" : "left-0"
             }`}
           >
-            <span className="tag !text-[9px] !text-accent">Noria note</span>
+            <span className="tag !text-[9px] !text-accent">Nota de Noria</span>
             <p className="mt-1 text-[13px] leading-snug text-ink/85">{note}</p>
           </motion.div>
         )}

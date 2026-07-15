@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { ProcureDemo } from "@/components/demos/procure/ProcureDemo";
 
 export const metadata: Metadata = {
-  title: "Noria Procure — Procurement copilot",
+  title: "Noria Procure — Copiloto de compras",
   description:
-    "Working demo: ERP purchase requests turned into explained, auditable decisions.",
+    "Demo funcional: solicitudes de compra del ERP convertidas en decisiones explicadas y auditables.",
 };
 
 export default function ProcurePage() {

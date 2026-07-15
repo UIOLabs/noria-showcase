@@ -37,7 +37,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+      aria-label={`Cambiar al tema ${theme === "dark" ? "claro" : "oscuro"}`}
       className="group relative flex h-8 w-14 items-center rounded-full border border-hairline px-1 transition-colors hover:border-ink/40"
     >
       {/* Thumb */}

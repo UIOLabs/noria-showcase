@@ -13,6 +13,13 @@ const STATUS_TONE: Record<CampaignStatus, { tone: "ok" | "warn" | "mute"; pulse:
   completed: { tone: "mute", pulse: false },
 };
 
+const STATUS_LABEL: Record<CampaignStatus, string> = {
+  running: "activa",
+  paused: "pausada",
+  draft: "borrador",
+  completed: "completada",
+};
+
 export function Campaigns({
   campaigns,
   onToggle,
@@ -28,7 +35,7 @@ export function Campaigns({
   if (wizardOpen) {
     return (
       <div>
-        <PageHead eyebrow="Library" title="New campaign" desc="Five steps from cohort to dial tone." />
+        <PageHead eyebrow="Biblioteca" title="Nueva campaña" desc="Cinco pasos desde el grupo hasta la marcación." />
         <CampaignWizard
           onCancel={() => setWizardOpen(false)}
           onLaunch={(c) => {
@@ -43,22 +50,22 @@ export function Campaigns({
   return (
     <div>
       <PageHead
-        eyebrow="Library"
-        title="Campaigns"
-        desc="Each campaign owns its cohort, script, schedule, and throughput caps."
-        actions={<SolidButton onClick={() => setWizardOpen(true)}>New campaign</SolidButton>}
+        eyebrow="Biblioteca"
+        title="Campañas"
+        desc="Cada campaña define su grupo, guion, horario y límites de rendimiento."
+        actions={<SolidButton onClick={() => setWizardOpen(true)}>Nueva campaña</SolidButton>}
       />
 
       <div className="overflow-x-auto rounded-2xl border border-hairline">
         <table>
           <thead>
             <tr>
-              <th className="pt-3">Name</th>
-              <th className="pt-3">Status</th>
-              <th className="pt-3 text-right">Concurrency</th>
-              <th className="pt-3 text-right">Daily cap</th>
-              <th className="pt-3">Hours</th>
-              <th className="pt-3">Created</th>
+              <th className="pt-3">Nombre</th>
+              <th className="pt-3">Estado</th>
+              <th className="pt-3 text-right">Simultáneas</th>
+              <th className="pt-3 text-right">Límite diario</th>
+              <th className="pt-3">Horario</th>
+              <th className="pt-3">Creada</th>
               <th className="pt-3" />
             </tr>
           </thead>
@@ -73,10 +80,10 @@ export function Campaigns({
                     <span className="mt-0.5 block font-mono text-[11px] text-mute">{c.script}</span>
                   </td>
                   <td>
-                    <StatusChip tone={s.tone} label={c.status} pulse={s.pulse} />
+                    <StatusChip tone={s.tone} label={STATUS_LABEL[c.status]} pulse={s.pulse} />
                   </td>
                   <td className="text-right font-mono text-[12px] tabular-nums">{c.concurrency}</td>
-                  <td className="text-right font-mono text-[12px] tabular-nums">{c.dailyCap}/day</td>
+                  <td className="text-right font-mono text-[12px] tabular-nums">{c.dailyCap}/día</td>
                   <td className="font-mono text-[12px] tabular-nums text-mute">{c.hours}</td>
                   <td className="text-mute">{c.created}</td>
                   <td className="text-right">
@@ -86,13 +93,13 @@ export function Campaigns({
                           onToggle(c.id);
                           toast(
                             c.status === "running"
-                              ? `Paused “${c.name}” — in-flight calls finish, no new dials.`
-                              : `Resumed “${c.name}” — dialing continues inside its window.`,
+                              ? `“${c.name}” pausada: las llamadas en curso terminan y no se inician otras.`
+                              : `“${c.name}” reanudada: la marcación continúa dentro de su horario.`,
                             c.status === "running" ? "info" : "ok"
                           );
                         }}
                       >
-                        {c.status === "running" ? "Pause" : "Resume"}
+                        {c.status === "running" ? "Pausar" : "Reanudar"}
                       </GhostButton>
                     )}
                   </td>

@@ -13,13 +13,13 @@ export function Nav() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-hairline bg-canvas/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 md:px-8">
-        <Link href="/" aria-label="Noria — product index" className="shrink-0">
+        <Link href="/" aria-label="Noria — índice de productos" className="shrink-0">
           <BrandLogo size="sm" />
         </Link>
 
         {/* Product switcher */}
         <nav
-          aria-label="Products"
+          aria-label="Productos"
           className="flex items-center gap-1 rounded-full border border-hairline p-1"
         >
           {PRODUCTS.map((p) => {
@@ -47,7 +47,7 @@ export function Nav() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-3">
-          <span className="tag hidden lg:inline">Product demos</span>
+          <span className="tag hidden lg:inline">Demos de producto</span>
           <ThemeToggle />
         </div>
       </div>

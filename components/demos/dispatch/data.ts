@@ -26,13 +26,13 @@ export const OUTCOMES: Outcome[] = [
 ];
 
 export const OUTCOME_META: Record<Outcome, { label: string; tone: Tone }> = {
-  connected: { label: "connected", tone: "ok" },
-  voicemail: { label: "voicemail", tone: "warn" },
-  no_answer: { label: "no answer", tone: "mute" },
-  busy: { label: "busy", tone: "mute" },
-  wrong_number: { label: "wrong number", tone: "danger" },
-  do_not_call: { label: "DNC", tone: "danger" },
-  failed: { label: "failed", tone: "danger" },
+  connected: { label: "conectada", tone: "ok" },
+  voicemail: { label: "buzón", tone: "warn" },
+  no_answer: { label: "sin respuesta", tone: "mute" },
+  busy: { label: "ocupado", tone: "mute" },
+  wrong_number: { label: "número equivocado", tone: "danger" },
+  do_not_call: { label: "no llamar", tone: "danger" },
+  failed: { label: "fallida", tone: "danger" },
 };
 
 export const INSTITUTIONS = [
@@ -71,7 +71,7 @@ export const CAMPAIGNS: Campaign[] = [
     concurrency: 6,
     dailyCap: 3,
     hours: "09:00–20:00",
-    created: "Jun 02, 2026",
+    created: "2 jun 2026",
     institution: "Banco Alcores",
     script: "negociacion_alcores · v3",
   },
@@ -82,7 +82,7 @@ export const CAMPAIGNS: Campaign[] = [
     concurrency: 4,
     dailyCap: 2,
     hours: "10:00–18:00",
-    created: "May 28, 2026",
+    created: "28 may 2026",
     institution: "Universidad Mirador",
     script: "recordatorio_colegiatura · v2",
   },
@@ -93,7 +93,7 @@ export const CAMPAIGNS: Campaign[] = [
     concurrency: 8,
     dailyCap: 3,
     hours: "09:00–19:00",
-    created: "May 15, 2026",
+    created: "15 may 2026",
     institution: "Financiera Vela Norte",
     script: "negociacion_alcores · v3",
   },
@@ -104,7 +104,7 @@ export const CAMPAIGNS: Campaign[] = [
     concurrency: 2,
     dailyCap: 1,
     hours: "10:00–17:00",
-    created: "Apr 03, 2026",
+    created: "3 abr 2026",
     institution: "Banco Alcores",
     script: "negociacion_alcores · v1",
   },
@@ -217,10 +217,10 @@ export function tickBoard(b: Board): Board {
 }
 
 export function agoLabel(seconds: number): string {
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return "ahora";
   const m = Math.floor(seconds / 60);
-  if (m < 60) return `${m}m ago`;
-  return `${Math.floor(m / 60)}h ago`;
+  if (m < 60) return `hace ${m} min`;
+  return `hace ${Math.floor(m / 60)} h`;
 }
 
 export function mmss(s: number): string {
@@ -259,10 +259,10 @@ export const ATTEMPTS: Attempt[] = [
     institution: "Banco Alcores",
     outcome: "connected",
     durationSec: 142,
-    placed: "Today · 11:42",
+    placed: "Hoy · 11:42",
     sentiment: "positive",
     summary:
-      "Debtor confirmed identity and acknowledged the outstanding balance. Agreed to a payment plan of 3 monthly installments starting June 15. Requested email confirmation of the agreement terms.",
+      "La deudora confirmó su identidad y reconoció el saldo pendiente. Acordó un plan de tres pagos mensuales desde el 15 de junio y pidió confirmación por correo de los términos.",
     transcript: `Agente: Buenos días, ¿tengo el gusto con María Fernanda Ortiz?
 Cliente: Sí, ella habla. ¿De parte de quién?
 Agente: Le llamo de parte de Banco Alcores, sobre su tarjeta con terminación 0214. ¿Tiene un minuto para revisar su saldo pendiente?
@@ -273,13 +273,13 @@ Agente: Perfecto. La primera mensualidad quedaría programada para el 15 de juni
 Cliente: Claro, es m.ortiz@correo-demo.mx.
 Agente: Registrado. Recibirá el convenio hoy mismo. Gracias por su tiempo y excelente día.`,
     postCall: [
-      { label: "Intent to pay", value: "Yes — plan agreed" },
-      { label: "Already paid", value: "No" },
-      { label: "Wrong number", value: "No" },
-      { label: "Alt phone", value: "—" },
-      { label: "Email", value: "m.ortiz@correo-demo.mx" },
-      { label: "Payment plan", value: "3 × monthly, starts Jun 15" },
-      { label: "Opt-out", value: "No" },
+      { label: "Intención de pago", value: "Sí — plan acordado" },
+      { label: "Ya pagó", value: "No" },
+      { label: "Número equivocado", value: "No" },
+      { label: "Teléfono alterno", value: "—" },
+      { label: "Correo", value: "m.ortiz@correo-demo.mx" },
+      { label: "Plan de pago", value: "3 mensualidades desde el 15 jun" },
+      { label: "No contactar", value: "No" },
     ],
     variables: VARS("María Fernanda", 18360.52, "Banco Alcores"),
   },
@@ -290,8 +290,8 @@ Agente: Registrado. Recibirá el convenio hoy mismo. Gracias por su tiempo y exc
     institution: "Universidad Mirador",
     outcome: "voicemail",
     durationSec: 27,
-    placed: "Today · 11:38",
-    summary: "Voicemail detected; left the approved reminder message with callback number.",
+    placed: "Hoy · 11:38",
+    summary: "Se detectó el buzón de voz y se dejó el recordatorio aprobado con un número para devolver la llamada.",
     variables: VARS("Carmen", 7250, "Universidad Mirador"),
   },
   {
@@ -301,7 +301,7 @@ Agente: Registrado. Recibirá el convenio hoy mismo. Gracias por su tiempo y exc
     institution: "Banco Alcores",
     outcome: "no_answer",
     durationSec: 30,
-    placed: "Today · 11:36",
+    placed: "Hoy · 11:36",
     variables: VARS("Jorge", 12900, "Banco Alcores"),
   },
   {
@@ -311,10 +311,10 @@ Agente: Registrado. Recibirá el convenio hoy mismo. Gracias por su tiempo y exc
     institution: "Universidad Mirador",
     outcome: "connected",
     durationSec: 96,
-    placed: "Today · 11:31",
+    placed: "Hoy · 11:31",
     sentiment: "neutral",
     summary:
-      "Debtor states the tuition balance was already paid at a branch on June 3. Asked for a payment verification; flagged for manual review with receipt folio MD-88214.",
+      "La deudora afirma que pagó la colegiatura en una sucursal el 3 de junio. Solicitó verificar el pago y el caso quedó marcado para revisión manual con el folio MD-88214.",
     transcript: `Agente: Buenas tardes, ¿hablo con Paola Vidal?
 Cliente: Sí, soy yo.
 Agente: Le llamo de parte de Universidad Mirador sobre la colegiatura de junio, con saldo de $7,250.00.
@@ -323,13 +323,13 @@ Agente: Gracias por la aclaración. ¿Cuenta con el folio de su comprobante?
 Cliente: Sí, es el MD-88214.
 Agente: Registrado. Enviaremos la verificación a su correo y no recibirá más llamadas sobre este cargo. Gracias por su tiempo.`,
     postCall: [
-      { label: "Intent to pay", value: "N/A" },
-      { label: "Already paid", value: "Yes — folio MD-88214" },
-      { label: "Wrong number", value: "No" },
-      { label: "Alt phone", value: "—" },
-      { label: "Email", value: "—" },
-      { label: "Payment plan", value: "—" },
-      { label: "Opt-out", value: "No" },
+      { label: "Intención de pago", value: "No aplica" },
+      { label: "Ya pagó", value: "Sí — folio MD-88214" },
+      { label: "Número equivocado", value: "No" },
+      { label: "Teléfono alterno", value: "—" },
+      { label: "Correo", value: "—" },
+      { label: "Plan de pago", value: "—" },
+      { label: "No contactar", value: "No" },
     ],
     variables: VARS("Paola", 7250, "Universidad Mirador"),
   },
@@ -340,7 +340,7 @@ Agente: Registrado. Enviaremos la verificación a su correo y no recibirá más 
     institution: "Banco Alcores",
     outcome: "busy",
     durationSec: 13,
-    placed: "Today · 11:28",
+    placed: "Hoy · 11:28",
     variables: VARS("Ricardo", 5420, "Banco Alcores"),
   },
   {
@@ -350,8 +350,8 @@ Agente: Registrado. Enviaremos la verificación a su correo y no recibirá más 
     institution: "Universidad Mirador",
     outcome: "wrong_number",
     durationSec: 15,
-    placed: "Today · 11:24",
-    summary: "Person reached is not the account holder; number flagged and removed from the cohort.",
+    placed: "Hoy · 11:24",
+    summary: "La persona contactada no es titular de la cuenta; el número se marcó y se retiró del grupo.",
     variables: VARS("Gustavo", 9100, "Universidad Mirador"),
   },
   {
@@ -361,23 +361,23 @@ Agente: Registrado. Enviaremos la verificación a su correo y no recibirá más 
     institution: "Banco Alcores",
     outcome: "connected",
     durationSec: 168,
-    placed: "Today · 11:17",
+    placed: "Hoy · 11:17",
     sentiment: "negative",
     summary:
-      "Debtor disputes the balance and requested no further calls. Marked do-not-call across all campaigns; case routed to a human agent for follow-up by email.",
+      "La deudora disputa el saldo y pidió no recibir más llamadas. Se activó la restricción en todas las campañas y el caso se envió a un agente humano para seguimiento por correo.",
     transcript: `Agente: Buenas tardes, ¿hablo con Daniela Roldán?
 Cliente: Sí, pero ya les dije que ese cargo no es mío.
 Agente: Lamento la molestia. Con gusto registro su aclaración para que un asesor revise su caso.
 Cliente: Por favor, y no me llamen otra vez.
 Agente: Entendido. Queda registrada su solicitud de no recibir más llamadas. Un asesor le contactará por correo únicamente. Gracias por su tiempo.`,
     postCall: [
-      { label: "Intent to pay", value: "Disputed" },
-      { label: "Already paid", value: "Unclear" },
-      { label: "Wrong number", value: "No" },
-      { label: "Alt phone", value: "—" },
-      { label: "Email", value: "—" },
-      { label: "Payment plan", value: "—" },
-      { label: "Opt-out", value: "Yes — DNC set" },
+      { label: "Intención de pago", value: "En disputa" },
+      { label: "Ya pagó", value: "Sin aclarar" },
+      { label: "Número equivocado", value: "No" },
+      { label: "Teléfono alterno", value: "—" },
+      { label: "Correo", value: "—" },
+      { label: "Plan de pago", value: "—" },
+      { label: "No contactar", value: "Sí — restricción activada" },
     ],
     variables: VARS("Daniela", 22480, "Banco Alcores"),
   },
@@ -388,7 +388,7 @@ Agente: Entendido. Queda registrada su solicitud de no recibir más llamadas. Un
     institution: "Banco Alcores",
     outcome: "no_answer",
     durationSec: 32,
-    placed: "Today · 11:12",
+    placed: "Hoy · 11:12",
     variables: VARS("Raúl", 3150, "Banco Alcores"),
   },
   {
@@ -398,7 +398,7 @@ Agente: Entendido. Queda registrada su solicitud de no recibir más llamadas. Un
     institution: "Banco Alcores",
     outcome: "voicemail",
     durationSec: 29,
-    placed: "Today · 11:05",
+    placed: "Hoy · 11:05",
     variables: VARS("Héctor", 15840, "Banco Alcores"),
   },
   {
@@ -408,8 +408,8 @@ Agente: Entendido. Queda registrada su solicitud de no recibir más llamadas. Un
     institution: "Financiera Vela Norte",
     outcome: "failed",
     durationSec: 9,
-    placed: "Today · 10:58",
-    summary: "Carrier error before ringing; retry queued for the afternoon window.",
+    placed: "Hoy · 10:58",
+    summary: "Error del operador antes del timbrado; el reintento quedó en cola para el horario de la tarde.",
     variables: VARS("Lucero", 6720, "Financiera Vela Norte"),
   },
   {
@@ -419,7 +419,7 @@ Agente: Entendido. Queda registrada su solicitud de no recibir más llamadas. Un
     institution: "Universidad Mirador",
     outcome: "voicemail",
     durationSec: 26,
-    placed: "Today · 10:51",
+    placed: "Hoy · 10:51",
     variables: VARS("Emilio", 7250, "Universidad Mirador"),
   },
   {
@@ -429,10 +429,10 @@ Agente: Entendido. Queda registrada su solicitud de no recibir más llamadas. Un
     institution: "Banco Alcores",
     outcome: "connected",
     durationSec: 118,
-    placed: "Today · 10:44",
+    placed: "Hoy · 10:44",
     sentiment: "positive",
     summary:
-      "Debtor asked for the total payoff amount and committed to a single payment before June 20. Provided an alternate phone for confirmation.",
+      "El deudor pidió el monto total para liquidar y se comprometió a realizar un solo pago antes del 20 de junio. Proporcionó un teléfono alterno para confirmar.",
     transcript: `Agente: Buenos días, ¿me comunico con Tomás Espino?
 Cliente: Sí, dígame.
 Agente: Le llamo de parte de Banco Alcores. Su saldo pendiente es de $9,980.00. ¿Le gustaría liquidarlo en un solo pago o en mensualidades?
@@ -441,13 +441,13 @@ Agente: Excelente. ¿Algún teléfono alterno para confirmarle la referencia de 
 Cliente: Sí, el +52 55 5501 0298.
 Agente: Registrado. Recibirá la referencia hoy. Gracias y buen día.`,
     postCall: [
-      { label: "Intent to pay", value: "Yes — full payment by Jun 20" },
-      { label: "Already paid", value: "No" },
-      { label: "Wrong number", value: "No" },
-      { label: "Alt phone", value: "+52 55 5501 0298" },
-      { label: "Email", value: "—" },
-      { label: "Payment plan", value: "Single payment" },
-      { label: "Opt-out", value: "No" },
+      { label: "Intención de pago", value: "Sí — pago total antes del 20 jun" },
+      { label: "Ya pagó", value: "No" },
+      { label: "Número equivocado", value: "No" },
+      { label: "Teléfono alterno", value: "+52 55 5501 0298" },
+      { label: "Correo", value: "—" },
+      { label: "Plan de pago", value: "Pago único" },
+      { label: "No contactar", value: "No" },
     ],
     variables: VARS("Tomás", 9980, "Banco Alcores"),
   },
@@ -458,8 +458,8 @@ Agente: Registrado. Recibirá la referencia hoy. Gracias y buen día.`,
     institution: "Financiera Vela Norte",
     outcome: "do_not_call",
     durationSec: 41,
-    placed: "Today · 10:36",
-    summary: "Debtor requested no further contact; DNC flag applied across campaigns.",
+    placed: "Hoy · 10:36",
+    summary: "La deudora pidió no recibir más contactos y la restricción se aplicó en todas las campañas.",
     variables: VARS("Silvia", 11200, "Financiera Vela Norte"),
   },
   {
@@ -469,7 +469,7 @@ Agente: Registrado. Recibirá la referencia hoy. Gracias y buen día.`,
     institution: "Banco Alcores",
     outcome: "no_answer",
     durationSec: 31,
-    placed: "Today · 10:29",
+    placed: "Hoy · 10:29",
     variables: VARS("Luis", 4380, "Banco Alcores"),
   },
 ];
@@ -479,7 +479,7 @@ Agente: Registrado. Recibirá la referencia hoy. Gracias y buen día.`,
 export const SCRIPT = {
   name: "negociacion_alcores",
   version: 3,
-  status: "published",
+  status: "publicado",
   voice: "es-MX · Lucía",
   language: "es-419",
   body: `Hola {{first_name}}, le hablo de parte de {{institution}}.
@@ -499,15 +499,15 @@ Si la persona pide no ser contactada:
 Cierre: "Gracias por su tiempo. Que tenga excelente día."`,
   variables: ["first_name", "amount", "institution", "due_date"],
   timing: [
-    { label: "Max call duration", value: "4 min" },
-    { label: "Silence timeout", value: "12 s" },
-    { label: "Voicemail detection", value: "On" },
-    { label: "Backchannel", value: "Medium" },
+    { label: "Duración máxima", value: "4 min" },
+    { label: "Espera de silencio", value: "12 s" },
+    { label: "Detección de buzón", value: "Activa" },
+    { label: "Confirmación verbal", value: "Media" },
   ],
   tuning: [
-    { label: "Temperature", value: 0.4 },
-    { label: "Speed", value: 0.55 },
-    { label: "Interruption sensitivity", value: 0.7 },
+    { label: "Temperatura", value: 0.4 },
+    { label: "Velocidad", value: 0.55 },
+    { label: "Sensibilidad a interrupciones", value: 0.7 },
   ],
   keywords: ["Alcores", "mensualidad", "convenio", "aclaración", "folio"],
   pronunciation: [
@@ -516,18 +516,18 @@ Cierre: "Gracias por su tiempo. Que tenga excelente día."`,
     { word: "folio", ipa: "/ˈfo.ljo/" },
   ],
   schema: [
-    { field: "intent_to_pay", desc: "Willingness and committed date, if any" },
-    { field: "already_paid", desc: "Claim of prior payment + folio" },
-    { field: "wrong_number", desc: "Reached party is not the account holder" },
-    { field: "alt_phone", desc: "Alternate phone offered" },
-    { field: "email", desc: "Email confirmed for follow-up" },
-    { field: "payment_plan", desc: "Plan requested (installments, dates)" },
-    { field: "opt_out", desc: "Do-not-call request" },
+    { field: "intent_to_pay", desc: "Disposición de pago y fecha comprometida" },
+    { field: "already_paid", desc: "Declaración de pago previo y folio" },
+    { field: "wrong_number", desc: "La persona contactada no es titular" },
+    { field: "alt_phone", desc: "Teléfono alterno proporcionado" },
+    { field: "email", desc: "Correo confirmado para seguimiento" },
+    { field: "payment_plan", desc: "Plan solicitado: cuotas y fechas" },
+    { field: "opt_out", desc: "Solicitud de no recibir llamadas" },
   ],
   versions: [
-    { v: "v3", date: "Jun 20, 2026", note: "Published — softer opening, folio capture" },
-    { v: "v2", date: "Jun 05, 2026", note: "Added already-paid branch" },
-    { v: "v1", date: "May 22, 2026", note: "Initial negotiation script" },
+    { v: "v3", date: "20 jun 2026", note: "Publicada — apertura más amable y captura de folio" },
+    { v: "v2", date: "5 jun 2026", note: "Se añadió la rama de pago ya realizado" },
+    { v: "v1", date: "22 may 2026", note: "Guion inicial de negociación" },
   ],
 };
 
@@ -547,11 +547,11 @@ export const COHORTS: Record<string, { count: number; sample: { name: string; ph
       { name: "Tomás Espino", phone: "+52 55 5501 0239", owed: 9980 },
     ],
     tz: [
-      { label: "Central", n: 196 },
-      { label: "Pacific", n: 28 },
-      { label: "Mountain", n: 17 },
-      { label: "Southeast", n: 5 },
-      { label: "Unknown", n: 2 },
+      { label: "Centro", n: 196 },
+      { label: "Pacífico", n: 28 },
+      { label: "Montaña", n: 17 },
+      { label: "Sureste", n: 5 },
+      { label: "Desconocida", n: 2 },
     ],
   },
   "Universidad Mirador": {
@@ -564,11 +564,11 @@ export const COHORTS: Record<string, { count: number; sample: { name: string; ph
       { name: "Gustavo Perea", phone: "+52 33 5501 0295", owed: 9100 },
     ],
     tz: [
-      { label: "Central", n: 118 },
-      { label: "Pacific", n: 9 },
-      { label: "Mountain", n: 3 },
-      { label: "Southeast", n: 1 },
-      { label: "Unknown", n: 0 },
+      { label: "Centro", n: 118 },
+      { label: "Pacífico", n: 9 },
+      { label: "Montaña", n: 3 },
+      { label: "Sureste", n: 1 },
+      { label: "Desconocida", n: 0 },
     ],
   },
   "Financiera Vela Norte": {
@@ -581,11 +581,11 @@ export const COHORTS: Record<string, { count: number; sample: { name: string; ph
       { name: "Rosa E. Palomares", phone: "+52 55 5501 0244", owed: 7040 },
     ],
     tz: [
-      { label: "Central", n: 54 },
-      { label: "Mountain", n: 21 },
-      { label: "Pacific", n: 10 },
-      { label: "Southeast", n: 2 },
-      { label: "Unknown", n: 0 },
+      { label: "Centro", n: 54 },
+      { label: "Montaña", n: 21 },
+      { label: "Pacífico", n: 10 },
+      { label: "Sureste", n: 2 },
+      { label: "Desconocida", n: 0 },
     ],
   },
 };

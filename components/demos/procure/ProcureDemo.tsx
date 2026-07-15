@@ -43,11 +43,11 @@ function ProcureInner() {
     <div className="demo-procure mx-auto max-w-[1600px] px-4 py-6 md:px-8" lang="es">
       <IntroPanel
         kicker="Noria Procure"
-        title="Procurement copilot"
+        title="Copiloto de compras"
         points={[
-          "Reads purchase requests straight from the client's ERP.",
-          "AI recommends, explains, drafts, and leaves an audit trail.",
-          "Fully clickable — every record here is demo data.",
+          "Lee las solicitudes de compra directamente del ERP del cliente.",
+          "La IA recomienda, explica, redacta y deja un rastro de auditoría.",
+          "Todo es interactivo y cada registro contiene datos de demostración.",
         ]}
       />
 

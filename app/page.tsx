@@ -19,14 +19,14 @@ export default function IndexPage() {
       />
 
       <div className="relative z-10">
-        <p className="tag mb-4">Noria · Product lines</p>
+        <p className="tag mb-4">Noria · Líneas de producto</p>
         <h1 className="max-w-3xl text-4xl tracking-[-0.035em] md:text-6xl">
-          Three products.{" "}
-          <em className="font-display italic text-accent">Working</em> demos.
+          Tres productos. Demos que {" "}
+          <em className="font-display italic text-accent">funcionan</em>.
         </h1>
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-mute">
-          Everything below is clickable and runs entirely in your browser on
-          demo data. Pick a product line — or use the switcher above.
+          Todo lo que sigue es interactivo y funciona por completo en tu navegador
+          con datos de demostración. Elige una línea de producto o usa el selector superior.
         </p>
 
         <div className="mt-12 grid gap-px bg-[var(--hairline)] md:grid-cols-3">
@@ -49,12 +49,12 @@ export default function IndexPage() {
                   {p.tagline}
                 </span>
                 <span className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-accent">
-                  Open demo
+                  Abrir demo
                   <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
                     ▸
                   </span>
                 </span>
-                <span className="mt-4 tag !text-[10px]">UI · {p.demoLang === "ES" ? "Español" : "English"}</span>
+                <span className="mt-4 tag !text-[10px]">Interfaz · Español</span>
               </Link>
             </motion.div>
           ))}

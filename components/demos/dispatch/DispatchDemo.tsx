@@ -19,10 +19,10 @@ import { ScriptDetail } from "./views/ScriptDetail";
 type ViewId = "dashboard" | "campaigns" | "attempts" | "script";
 
 const NAV: { id: ViewId; label: string }[] = [
-  { id: "dashboard", label: "Dashboard" },
-  { id: "campaigns", label: "Campaigns" },
-  { id: "attempts", label: "Attempts" },
-  { id: "script", label: "Script" },
+  { id: "dashboard", label: "En vivo" },
+  { id: "campaigns", label: "Campañas" },
+  { id: "attempts", label: "Intentos" },
+  { id: "script", label: "Guion" },
 ];
 
 export function DispatchDemo() {
@@ -58,7 +58,7 @@ export function DispatchDemo() {
               <span className="h-[9px] w-[9px] rounded-full" style={{ background: "var(--ink)" }} />
               <span className="font-mono text-lg font-semibold uppercase tracking-[0.2em]">Dispatch</span>
             </div>
-            <p className="tag !text-[9px] md:mt-1">Call dispatcher</p>
+            <p className="tag !text-[9px] md:mt-1">Despachador de llamadas</p>
           </div>
 
           <nav className="mt-3 flex gap-1 overflow-x-auto md:mt-10 md:flex-col md:gap-0.5">
@@ -92,7 +92,7 @@ export function DispatchDemo() {
           <div className="mt-6 hidden border-t border-hairline pt-4 md:block">
             <p className="font-mono text-[10px] text-mute">operador@demo.noria</p>
             <button type="button" className="mt-1 text-[12px] text-mute transition-colors hover:text-ink">
-              Sign out
+              Cerrar sesión
             </button>
           </div>
         </aside>
@@ -101,11 +101,11 @@ export function DispatchDemo() {
         <div className="min-w-0 flex-1 px-4 py-6 md:px-10 md:py-8">
           <IntroPanel
             kicker="Noria Dispatch"
-            title="AI voice operations"
+            title="Operaciones de voz con IA"
             points={[
-              "AI voice agents dial; a human takes over the moment someone answers.",
-              "Stop-on-connect — nobody gets double-called.",
-              "Every name, number, and balance here is fictional.",
+              "Los agentes de voz con IA llaman y una persona toma el control en cuanto alguien responde.",
+              "Las llamadas se detienen al conectar: nadie recibe una llamada duplicada.",
+              "Todos los nombres, números y saldos son ficticios.",
             ]}
           />
 

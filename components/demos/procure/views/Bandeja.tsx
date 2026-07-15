@@ -192,7 +192,7 @@ function CopilotoPanel({ filteredCount }: { filteredCount: number }) {
     <aside className="sticky top-36 hidden rounded-2xl border border-hairline bg-surface xl:block">
       <Spotlight
         align="right"
-        note="The copilot summarizes the queue and its buttons drive the real filters on the left."
+        note="El copiloto resume la bandeja y sus botones controlan los filtros de la izquierda."
       />
       <div
         className="flex items-center gap-2.5 rounded-t-2xl px-4 py-3"

@@ -168,7 +168,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
 
           {/* Cotizaciones */}
           <Panel className="relative">
-            <Spotlight note="Pick a quote — totals, variance, the chart, and the AI reading all re-rank live." />
+            <Spotlight note="Elige una cotización: los totales, la variación, el gráfico y el análisis de IA se actualizan al instante." />
             <PanelHead
               title="Cotizaciones"
               sub={`${r.quotes.length} de 3 requeridas por política`}
@@ -226,7 +226,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
           <div className="relative rounded-2xl border border-hairline bg-surface">
             <Spotlight
               align="right"
-              note="Seven one-tap prompts. Output is computed from this request's numbers — deterministic, auditable."
+              note="Siete consultas de un toque. El resultado se calcula con los datos de esta solicitud: determinístico y auditable."
             />
             <div className="flex items-center gap-2.5 rounded-t-2xl px-4 py-3" style={{ background: "var(--pr-hero-grad)" }}>
               <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 text-[11px] font-black text-white">

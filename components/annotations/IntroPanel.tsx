@@ -47,7 +47,7 @@ export function IntroPanel({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Dismiss explainer"
+              aria-label="Cerrar explicación"
               className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-mute transition-colors hover:text-ink"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

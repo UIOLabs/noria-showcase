@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { DispatchDemo } from "@/components/demos/dispatch/DispatchDemo";
 
 export const metadata: Metadata = {
-  title: "Noria Dispatch — AI voice operations",
+  title: "Noria Dispatch — Operaciones de voz con IA",
   description:
-    "Working demo: AI voice agents place outbound calls; humans take over on connect.",
+    "Demo funcional: agentes de voz con IA realizan llamadas salientes y una persona toma el control al conectar.",
 };
 
 export default function DispatchPage() {
