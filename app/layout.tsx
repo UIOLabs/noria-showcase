@@ -45,9 +45,14 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://showcase.noria-tech.com"),
   title: "Noria — Líneas de producto",
   description:
     "Demos funcionales de tres productos creados por Noria: copiloto de compras, control de manufactura y operaciones de voz con IA.",
+  // Anonymised client demos that only make sense alongside the context on
+  // noria-tech.com: reachable in one click from the site, never a cold search
+  // result. follow:true so the link equity still flows back to the site.
+  robots: { index: false, follow: true },
 };
 
 // Runs before paint: restore the persisted theme (or system preference) so

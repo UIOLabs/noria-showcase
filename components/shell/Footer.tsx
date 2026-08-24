@@ -11,7 +11,17 @@ export function Footer() {
         <p className="text-[13px] text-mute">
           Todas las pantallas usan datos de demostración: sin backend ni registros reales.
         </p>
-        <span className="tag">© Noria</span>
+        <div className="flex items-center gap-5">
+          {/* Way back to the marketing site. Most visitors arrive from there in
+              a new tab, but anyone landing here directly needs the door. */}
+          <a
+            href="https://www.noria-tech.com"
+            className="tag transition-colors hover:text-ink"
+          >
+            noria-tech.com ↗
+          </a>
+          <span className="tag">© Noria</span>
+        </div>
       </div>
     </footer>
   );
