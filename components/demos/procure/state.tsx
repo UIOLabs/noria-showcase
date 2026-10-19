@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
+import { useT } from "@/components/i18n/LocaleProvider";
+import type { Text } from "@/lib/i18n";
 import {
   INITIAL_RULES,
   REQUESTS,
@@ -19,6 +21,19 @@ export type ModalKind =
   | { kind: "rule"; requestId?: string }
   | null;
 
+export type Role = "Compras" | "Jefatura";
+export type Density = "detallada" | "compacta";
+
+export const ROLE_LABEL: Record<Role, Text> = {
+  Compras: { en: "Purchasing", es: "Compras" },
+  Jefatura: { en: "Manager", es: "Jefatura" },
+};
+
+export const DENSITY_LABEL: Record<Density, Text> = {
+  detallada: { en: "Detailed", es: "Detallada" },
+  compacta: { en: "Compact", es: "Compacta" },
+};
+
 export type Filters = {
   q: string;
   queue: QueueId | "todas";
@@ -34,16 +49,16 @@ type ProcureCtx = {
 
   filters: Filters;
   setFilters: (f: Partial<Filters>) => void;
-  density: "detallada" | "compacta";
-  setDensity: (d: "detallada" | "compacta") => void;
+  density: Density;
+  setDensity: (d: Density) => void;
 
-  role: "Compras" | "Jefatura";
+  role: Role;
   toggleRole: () => void;
 
   decisions: Record<string, Decision>;
   decide: (id: string, d: Decision) => void;
-  extraAudit: Record<string, string[]>;
-  addAudit: (id: string, line: string) => void;
+  extraAudit: Record<string, Text[]>;
+  addAudit: (id: string, line: Text) => void;
 
   selectedQuotes: Record<string, string>;
   selectQuote: (reqId: string, quoteId: string) => void;
@@ -73,13 +88,14 @@ const TOUR_IDS = REQUESTS.slice(0, 6).map((r) => r.id);
 
 export function ProcureProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
+  const t = useT();
   const [view, setView] = useState<View>("centro");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filters, setFiltersState] = useState<Filters>({ q: "", queue: "todas", risk: "todos" });
-  const [density, setDensity] = useState<"detallada" | "compacta">("detallada");
-  const [role, setRole] = useState<"Compras" | "Jefatura">("Compras");
+  const [density, setDensity] = useState<Density>("detallada");
+  const [role, setRole] = useState<Role>("Compras");
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
-  const [extraAudit, setExtraAudit] = useState<Record<string, string[]>>({});
+  const [extraAudit, setExtraAudit] = useState<Record<string, Text[]>>({});
   const [selectedQuotes, setSelectedQuotes] = useState<Record<string, string>>({});
   const [rules, setRules] = useState<Rule[]>(INITIAL_RULES);
   const [ruleJustCreated, setRuleJustCreated] = useState(false);
@@ -104,22 +120,32 @@ export function ProcureProvider({ children }: { children: React.ReactNode }) {
   const toggleRole = useCallback(() => {
     setRole((r) => {
       const next = r === "Compras" ? "Jefatura" : "Compras";
-      toast(`Vista cambiada a ${next}`, "info");
+      toast(t({ en: `View switched to ${ROLE_LABEL[next].en}`, es: `Vista cambiada a ${ROLE_LABEL[next].es}` }), "info");
       return next;
     });
-  }, [toast]);
+  }, [toast, t]);
 
-  const addAudit = useCallback((id: string, line: string) => {
+  const addAudit = useCallback((id: string, line: Text) => {
     setExtraAudit((prev) => ({ ...prev, [id]: [...(prev[id] ?? []), line] }));
   }, []);
 
   const decide = useCallback(
     (id: string, d: Decision) => {
       setDecisions((prev) => ({ ...prev, [id]: d }));
-      addAudit(id, d === "aprobada" ? "09:02 · Aprobada desde Noria Procure" : "09:02 · Devuelta al solicitante");
-      toast(d === "aprobada" ? `${id} aprobada y registrada en SIGA` : `${id} devuelta al solicitante`, d === "aprobada" ? "ok" : "danger");
+      addAudit(
+        id,
+        d === "aprobada"
+          ? { en: "09:02 · Approved from Procure", es: "09:02 · Aprobada desde Procure" }
+          : { en: "09:02 · Returned to the requester", es: "09:02 · Devuelta al solicitante" }
+      );
+      toast(
+        d === "aprobada"
+          ? t({ en: `${id} approved and logged in SIGA`, es: `${id} aprobada y registrada en SIGA` })
+          : t({ en: `${id} returned to the requester`, es: `${id} devuelta al solicitante` }),
+        d === "aprobada" ? "ok" : "danger"
+      );
     },
-    [addAudit, toast]
+    [addAudit, toast, t]
   );
 
   const selectQuote = useCallback((reqId: string, quoteId: string) => {
@@ -130,9 +156,15 @@ export function ProcureProvider({ children }: { children: React.ReactNode }) {
     (r: Rule) => {
       setRules((prev) => [r, ...prev]);
       setRuleJustCreated(true);
-      toast(`Regla ${r.id} creada · próximas compras se auto-aprueban`, "ok");
+      toast(
+        t({
+          en: `Rule ${r.id} created · future purchases auto-approve`,
+          es: `Regla ${r.id} creada · próximas compras se auto-aprueban`,
+        }),
+        "ok"
+      );
     },
-    [toast]
+    [toast, t]
   );
 
   const startTour = useCallback(() => {
@@ -140,18 +172,18 @@ export function ProcureProvider({ children }: { children: React.ReactNode }) {
     setSelectedId(TOUR_IDS[0]);
     setView("detalle");
     window.scrollTo({ top: 0 });
-    toast("Recorrido guiado · paso 1 de 6", "info");
-  }, [toast]);
+    toast(t({ en: "Guided tour · step 1 of 6", es: "Recorrido guiado · paso 1 de 6" }), "info");
+  }, [toast, t]);
 
   const nextTourCase = useCallback(() => {
     setTourStep((prev) => {
       const next = prev === null ? 0 : (prev + 1) % TOUR_IDS.length;
       setSelectedId(TOUR_IDS[next]);
       window.scrollTo({ top: 0 });
-      toast(`Recorrido guiado · paso ${next + 1} de 6`, "info");
+      toast(t({ en: `Guided tour · step ${next + 1} of 6`, es: `Recorrido guiado · paso ${next + 1} de 6` }), "info");
       return next;
     });
-  }, [toast]);
+  }, [toast, t]);
 
   const selected = useMemo(
     () => REQUESTS.find((r) => r.id === selectedId) ?? null,

@@ -7,6 +7,8 @@ import { LineChart } from "@/components/charts/LineChart";
 import { Donut } from "@/components/charts/Donut";
 import { Legend } from "@/components/charts/Legend";
 import { Spotlight } from "@/components/annotations/Spotlight";
+import { useLocale, useT } from "@/components/i18n/LocaleProvider";
+import type { Text } from "@/lib/i18n";
 import {
   PLAN_ORDERS,
   MACHINES,
@@ -17,8 +19,8 @@ import {
   dayLabel,
   dateOffset,
   stageByKey,
-  fmtNum,
-  fmtPct,
+  useFmt,
+  STATE_LABEL,
   type PlanOrder,
   type Stage,
 } from "../data";
@@ -26,6 +28,12 @@ import { Panel, StatChip, EstadoBadge, useLoaded, SkeletonView } from "../ui";
 
 type PlazoFilter = "Todas" | "≤ 7 días" | "Atrasadas";
 type EstadoFilter = "Todas" | "En producción" | "Por crear OP" | "Cotizado";
+
+const PLAZO_LABEL: Record<PlazoFilter, Text> = {
+  Todas: { en: "All", es: "Todas" },
+  "≤ 7 días": { en: "≤ 7 days", es: "≤ 7 días" },
+  Atrasadas: { en: "Late", es: "Atrasadas" },
+};
 
 const ZOOMS = [26, 40, 56];
 const QUEUE_CAP = 5;
@@ -40,6 +48,9 @@ type Placed = PlanOrder & {
 export function SchedulerView() {
   const loaded = useLoaded();
   const { toast } = useToast();
+  const locale = useLocale();
+  const t = useT();
+  const { fmtNum } = useFmt();
 
   const [tab, setTab] = useState<"plan" | "real">("plan");
   const [planned, setPlanned] = useState(false);
@@ -76,7 +87,7 @@ export function SchedulerView() {
   const queue = useMemo(() => {
     const q = search.trim().toLowerCase();
     return orders.filter((o) => {
-      if (q && !`${o.id} ${o.cliente} ${o.producto}`.toLowerCase().includes(q)) return false;
+      if (q && !`${o.id} ${o.cliente} ${o.producto.en} ${o.producto.es}`.toLowerCase().includes(q)) return false;
       if (plazo === "≤ 7 días" && o.entregaDay > 7) return false;
       if (plazo === "Atrasadas" && !o.late) return false;
       if (estado !== "Todas" && o.estado !== estado) return false;
@@ -109,12 +120,18 @@ export function SchedulerView() {
   function planAll() {
     if (planning) return;
     setPlanning(true);
-    toast("Planificando órdenes pendientes…", "info");
+    toast(t({ en: "Planning pending orders…", es: "Planificando órdenes pendientes…" }), "info");
     setTimeout(() => {
       setPlanning(false);
       setPlanned(true);
       setAnimKey((k) => k + 1);
-      toast(`Plan generado: ${PLAN_ORDERS.length} órdenes en ${MACHINES.length} máquinas`, "ok");
+      toast(
+        t({
+          en: `Plan generated: ${PLAN_ORDERS.length} orders across ${MACHINES.length} machines`,
+          es: `Plan generado: ${PLAN_ORDERS.length} órdenes en ${MACHINES.length} máquinas`,
+        }),
+        "ok"
+      );
     }, 900);
   }
 
@@ -134,10 +151,10 @@ export function SchedulerView() {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => toast("VETRA ERP sincronizado · cola actualizada", "ok")}
+          onClick={() => toast(t({ en: "VETRA ERP synced · queue updated", es: "VETRA ERP sincronizado · cola actualizada" }), "ok")}
           className="pl-chip"
         >
-          ⟳ Sincronizar ERP
+          {t({ en: "⟳ Sync ERP", es: "⟳ Sincronizar ERP" })}
         </button>
         <button
           type="button"
@@ -145,14 +162,18 @@ export function SchedulerView() {
           className="rounded-full px-4 py-1.5 text-[13px] font-medium transition-opacity hover:opacity-90"
           style={{ background: "var(--pl-accent)", color: "var(--pl-accent-ink)" }}
         >
-          {planning ? "Planificando…" : planned ? "Replanificar todo" : "Planificar todo"}
+          {planning
+            ? t({ en: "Planning…", es: "Planificando…" })
+            : planned
+              ? t({ en: "Re-plan all", es: "Replanificar todo" })
+              : t({ en: "Plan all", es: "Planificar todo" })}
         </button>
 
         <div className="ml-auto flex items-center gap-1 rounded-full border border-hairline p-1">
           {(
             [
-              ["plan", "Planificador"],
-              ["real", "Comparación real"],
+              ["plan", t({ en: "Scheduler", es: "Planificador" })],
+              ["real", t({ en: "vs Reality", es: "Comparación real" })],
             ] as const
           ).map(([k, label]) => (
             <button
@@ -174,29 +195,33 @@ export function SchedulerView() {
 
       {/* KPI chips */}
       <div className="flex flex-wrap gap-2">
-        <StatChip label="Pendiente OP" value={String(stats.pendiente)} tone="warn" />
-        <StatChip label="En producción" value={String(stats.enProd)} tone="ok" />
-        <StatChip label="Con plan" value={`${stats.conPlan}/${PLAN_ORDERS.length}`} />
-        <StatChip label="Proy. tarde" value={String(stats.tarde)} tone={stats.tarde > 0 ? "danger" : "ok"} />
-        <StatChip label="Utilización" value={`${stats.util}%`} />
-        <StatChip label="Cuello de botella" value={stats.bottleneck} tone="warn" />
+        <StatChip label={t(STATE_LABEL["Por crear OP"])} value={String(stats.pendiente)} tone="warn" />
+        <StatChip label={t(STATE_LABEL["En producción"])} value={String(stats.enProd)} tone="ok" />
+        <StatChip label={t({ en: "Planned", es: "Con plan" })} value={`${stats.conPlan}/${PLAN_ORDERS.length}`} />
+        <StatChip
+          label={t({ en: "Proj. late", es: "Proy. tarde" })}
+          value={String(stats.tarde)}
+          tone={stats.tarde > 0 ? "danger" : "ok"}
+        />
+        <StatChip label={t({ en: "Utilization", es: "Utilización" })} value={`${stats.util}%`} />
+        <StatChip label={t({ en: "Bottleneck", es: "Cuello de botella" })} value={stats.bottleneck} tone="warn" />
       </div>
 
       {tab === "plan" ? (
         <div className="grid gap-3 xl:grid-cols-[320px_1fr]">
           {/* Queue */}
-          <Panel title="Cola VETRA" bodyClassName="p-3 space-y-3">
+          <Panel title={t({ en: "VETRA queue", es: "Cola VETRA" })} bodyClassName="p-3 space-y-3">
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar OP, cliente o producto…"
+              placeholder={t({ en: "Search WO, client or product…", es: "Buscar OP, cliente o producto…" })}
               className="w-full rounded-xl border border-hairline bg-transparent px-3 py-2 text-[13px] outline-none transition-colors placeholder:text-mute/60 focus:border-[color:var(--pl-accent)]"
             />
             <div className="flex flex-wrap gap-1.5">
               {(["Todas", "≤ 7 días", "Atrasadas"] as PlazoFilter[]).map((f) => (
                 <button key={f} type="button" className="pl-chip" data-active={plazo === f} onClick={() => setPlazo(f)}>
-                  {f}
+                  {t(PLAZO_LABEL[f])}
                   <span className="count">
                     {f === "Todas" ? orders.length : f === "≤ 7 días" ? orders.filter((o) => o.entregaDay <= 7).length : orders.filter((o) => o.late).length}
                   </span>
@@ -206,7 +231,7 @@ export function SchedulerView() {
             <div className="flex flex-wrap gap-1.5">
               {(["Todas", "En producción", "Por crear OP", "Cotizado"] as EstadoFilter[]).map((f) => (
                 <button key={f} type="button" className="pl-chip" data-active={estado === f} onClick={() => setEstado(f)}>
-                  {f}
+                  {f === "Todas" ? t({ en: "All", es: "Todas" }) : t(STATE_LABEL[f])}
                   <span className="count">
                     {f === "Todas" ? orders.length : orders.filter((o) => o.estado === f).length}
                   </span>
@@ -226,21 +251,23 @@ export function SchedulerView() {
                     <EstadoBadge estado={o.late ? "Atrasada" : o.estado} />
                   </div>
                   <p className="mt-1 truncate text-[13px] font-medium">{o.cliente}</p>
-                  <p className="truncate text-[12px] text-mute">{o.producto}</p>
+                  <p className="truncate text-[12px] text-mute">{t(o.producto)}</p>
                   <div className="mt-1.5 flex items-center justify-between font-mono text-[10px] text-mute">
                     <span>{fmtNum(o.kg)} kg</span>
-                    <span>entrega {dateOffset(o.entregaDay)}</span>
+                    <span>
+                      {t({ en: "due", es: "entrega" })} {dateOffset(o.entregaDay, locale)}
+                    </span>
                   </div>
                   {o.activeSegments.length === 0 && (
                     <p className="mt-1 font-mono text-[10px] uppercase tracking-wide" style={{ color: "var(--warn)" }}>
-                      Sin plan — usa “Planificar todo”
+                      {t({ en: "Not planned — use “Plan all”", es: "Sin plan — usa “Planificar todo”" })}
                     </p>
                   )}
                 </button>
               ))}
               {queue.length === 0 && (
                 <div className="rounded-xl border border-dashed border-hairline p-6 text-center text-[13px] text-mute">
-                  Sin órdenes con estos filtros.
+                  {t({ en: "No orders match these filters.", es: "Sin órdenes con estos filtros." })}
                 </div>
               )}
               {queue.length > QUEUE_CAP && (
@@ -249,7 +276,9 @@ export function SchedulerView() {
                   onClick={() => setQueueExpanded((e) => !e)}
                   className="w-full rounded-xl border border-dashed border-hairline px-3 py-2 text-[12px] text-mute transition-colors hover:border-ink/30 hover:text-ink"
                 >
-                  {queueExpanded ? "Ver menos" : `Ver ${queue.length - QUEUE_CAP} más`}
+                  {queueExpanded
+                    ? t({ en: "Show less", es: "Ver menos" })
+                    : t({ en: `Show ${queue.length - QUEUE_CAP} more`, es: `Ver ${queue.length - QUEUE_CAP} más` })}
                 </button>
               )}
             </div>
@@ -257,9 +286,14 @@ export function SchedulerView() {
 
           {/* Gantt */}
           <div className="relative min-w-0">
-            <Spotlight note="Un plan de capacidad finita: cada barra respeta la velocidad y disponibilidad reales de la máquina. Haz clic en una barra para actuar." />
+            <Spotlight
+              note={t({
+                en: "A finite-capacity plan: every bar respects the machine's real speed and availability. Click a bar to act on it.",
+                es: "Un plan de capacidad finita: cada barra respeta la velocidad y disponibilidad reales de la máquina. Haz clic en una barra para actuar.",
+              })}
+            />
             <Panel
-              title="Plan de producción · 14 días"
+              title={t({ en: "Production plan · 14 days", es: "Plan de producción · 14 días" })}
               accessory={
                 <div className="flex items-center gap-2">
                   <div className="hidden items-center gap-1.5 md:flex">
@@ -272,15 +306,15 @@ export function SchedulerView() {
                         data-active={stageFilter === s.key}
                       >
                         <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
-                        <span className="hidden xl:inline">{s.name}</span>
+                        <span className="hidden xl:inline">{t(s.name)}</span>
                       </button>
                     ))}
                   </div>
                   <div className="flex items-center gap-1">
-                    <button type="button" className="pl-chip !px-2.5 !py-1" onClick={() => setZoom((z) => Math.max(0, z - 1))} aria-label="Alejar">
+                    <button type="button" className="pl-chip !px-2.5 !py-1" onClick={() => setZoom((z) => Math.max(0, z - 1))} aria-label={t({ en: "Zoom out", es: "Alejar" })}>
                       －
                     </button>
-                    <button type="button" className="pl-chip !px-2.5 !py-1" onClick={() => setZoom((z) => Math.min(ZOOMS.length - 1, z + 1))} aria-label="Acercar">
+                    <button type="button" className="pl-chip !px-2.5 !py-1" onClick={() => setZoom((z) => Math.min(ZOOMS.length - 1, z + 1))} aria-label={t({ en: "Zoom in", es: "Acercar" })}>
                       ＋
                     </button>
                   </div>
@@ -291,14 +325,15 @@ export function SchedulerView() {
               {/* Freshness bar */}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-hairline px-4 py-2 font-mono text-[10px] text-mute">
                 <span>Plan #P-2606-14</span>
-                <span>generado hace 12 min</span>
-                <span>sincronizado hace 4 min</span>
+                <span>{t({ en: "generated 12 min ago", es: "generado hace 12 min" })}</span>
+                <span>{t({ en: "synced 4 min ago", es: "sincronizado hace 4 min" })}</span>
                 <span style={{ color: stats.tarde > 0 ? "var(--warn)" : "var(--ok)" }}>
-                  {Math.round(((stats.conPlan - stats.tarde) / Math.max(stats.conPlan, 1)) * 100)}% a tiempo
+                  {Math.round(((stats.conPlan - stats.tarde) / Math.max(stats.conPlan, 1)) * 100)}%{" "}
+                  {t({ en: "on time", es: "a tiempo" })}
                 </span>
                 {stats.tarde > 0 && (
                   <button type="button" onClick={planAll} className="ml-auto rounded-full border border-hairline px-2.5 py-0.5 transition-colors hover:text-ink">
-                    ⚠ Replanificar
+                    ⚠ {t({ en: "Re-plan", es: "Replanificar" })}
                   </button>
                 )}
               </div>
@@ -311,14 +346,16 @@ export function SchedulerView() {
                     <div key={s.key}>
                       <div className="flex h-7 items-center gap-2 border-b border-hairline bg-surface-2 px-3">
                         <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
-                        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-mute">{s.name}</span>
+                        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-mute">{t(s.name)}</span>
                       </div>
                       {MACHINES.filter((m) => m.stage === s.key).map((m) => (
                         <div key={m.code} className="flex h-9 items-center justify-between border-b border-hairline px-3">
                           <span className="font-mono text-[11px]">{m.code}</span>
                           {m.estado !== "Operativa" && (
                             <span className="font-mono text-[8px] uppercase" style={{ color: m.estado === "Mantenimiento" ? "var(--mute)" : "var(--warn)" }}>
-                              {m.estado === "Mantenimiento" ? "MTTO" : "CAMBIO"}
+                              {m.estado === "Mantenimiento"
+                                ? t({ en: "MAINT", es: "MTTO" })
+                                : t({ en: "C/O", es: "CAMBIO" })}
                             </span>
                           )}
                         </div>
@@ -333,7 +370,7 @@ export function SchedulerView() {
                     {/* Day headers */}
                     <div className="relative flex h-9 border-b border-hairline">
                       {Array.from({ length: HORIZON_DAYS }, (_, d) => {
-                        const dl = dayLabel(d);
+                        const dl = dayLabel(d, locale);
                         return (
                           <div
                             key={d}
@@ -354,7 +391,7 @@ export function SchedulerView() {
                           <div key={m.code} className="pl-gantt-row h-9">
                             {/* weekend shading */}
                             {Array.from({ length: HORIZON_DAYS }, (_, d) =>
-                              dayLabel(d).weekend ? (
+                              dayLabel(d, locale).weekend ? (
                                 <span
                                   key={d}
                                   className="absolute inset-y-0"
@@ -398,10 +435,10 @@ export function SchedulerView() {
 
               {/* Legend */}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-hairline px-4 py-2.5">
-                <Legend items={STAGES.map((s) => ({ label: s.name, color: `${s.color}` }))} />
+                <Legend items={STAGES.map((s) => ({ label: t(s.name), color: `${s.color}` }))} />
                 <span className="flex items-center gap-1.5 text-[12px] text-mute">
                   <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ boxShadow: "inset 0 0 0 2px var(--danger)" }} />
-                  Tarde / en riesgo
+                  {t({ en: "Late / at risk", es: "Tarde / en riesgo" })}
                 </span>
               </div>
             </Panel>
@@ -412,33 +449,43 @@ export function SchedulerView() {
       )}
 
       {/* Job drawer */}
-      <Drawer open={selected !== null} onClose={() => setSelectedId(null)} width={420} label="Detalle de orden">
+      <Drawer
+        open={selected !== null}
+        onClose={() => setSelectedId(null)}
+        width={420}
+        label={t({ en: "Order detail", es: "Detalle de orden" })}
+      >
         {selected && (
           <div className="demo-plant flex h-full flex-col">
             <header className="border-b border-hairline px-5 py-4">
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-mute">Orden planificada</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-mute">
+                {t({ en: "Planned order", es: "Orden planificada" })}
+              </p>
               <div className="mt-1 flex items-center gap-3">
                 <h3 className="text-lg font-semibold tracking-tight">{selected.id}</h3>
                 <EstadoBadge estado={selected.late ? "Atrasada" : selected.estado} />
                 {selected.urgent && (
                   <span className="rounded-full border border-hairline px-2 py-0.5 font-mono text-[9px] uppercase tracking-wide">
-                    Urgente
+                    {t({ en: "Urgent", es: "Urgente" })}
                   </span>
                 )}
               </div>
               <p className="mt-1 text-[13px] text-mute">
-                {selected.cliente} · {selected.producto}
+                {selected.cliente} · {t(selected.producto)}
               </p>
             </header>
 
             <div className="grid grid-cols-2 gap-px border-b border-hairline bg-[var(--hairline)]">
               {[
                 { l: "KG", v: fmtNum(selected.kg) },
-                { l: "Entrega", v: dateOffset(selected.entregaDay) },
-                { l: "Ruta", v: selected.ruta.map((r) => stageByKey(r).name.slice(0, 3)).join(" → ") },
+                { l: t({ en: "Due", es: "Entrega" }), v: dateOffset(selected.entregaDay, locale) },
                 {
-                  l: "Fin proyectado",
-                  v: selected.endDay >= 0 ? dateOffset(selected.endDay) : "Sin plan",
+                  l: t({ en: "Route", es: "Ruta" }),
+                  v: selected.ruta.map((r) => t(stageByKey(r).name).slice(0, 3)).join(" → "),
+                },
+                {
+                  l: t({ en: "Projected finish", es: "Fin proyectado" }),
+                  v: selected.endDay >= 0 ? dateOffset(selected.endDay, locale) : t({ en: "Not planned", es: "Sin plan" }),
                 },
               ].map((s) => (
                 <div key={s.l} className="bg-canvas px-4 py-3">
@@ -450,12 +497,17 @@ export function SchedulerView() {
 
             {selected.late && (
               <div className="mx-5 mt-4 rounded-xl border px-3.5 py-2.5 text-[13px]" style={{ borderColor: "var(--danger)", color: "var(--danger)", background: "color-mix(in oklab, var(--danger) 8%, transparent)" }}>
-                Proyectada {selected.endDay - selected.entregaDay} día(s) tarde. Márcala urgente o replanifica.
+                {t({
+                  en: `Projected ${selected.endDay - selected.entregaDay} day(s) late. Mark it urgent or re-plan.`,
+                  es: `Proyectada ${selected.endDay - selected.entregaDay} día(s) tarde. Márcala urgente o replanifica.`,
+                })}
               </div>
             )}
 
             <div className="px-5 py-4">
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-mute">Etapas planificadas</p>
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-mute">
+                {t({ en: "Planned stages", es: "Etapas planificadas" })}
+              </p>
               {selected.activeSegments.length > 0 ? (
                 <ul className="space-y-2">
                   {selected.activeSegments.map((seg) => {
@@ -463,10 +515,10 @@ export function SchedulerView() {
                     return (
                       <li key={`${seg.stage}-${seg.machine}`} className="flex items-center gap-3 rounded-xl border border-hairline px-3 py-2.5 text-[13px]">
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: st.color }} />
-                        <span className="w-24">{st.name}</span>
+                        <span className="w-24">{t(st.name)}</span>
                         <span className="font-mono text-xs text-mute">{seg.machine}</span>
                         <span className="ml-auto font-mono text-[11px] tabular-nums text-mute">
-                          {dateOffset(seg.start)} → {dateOffset(seg.start + seg.dur - 1)}
+                          {dateOffset(seg.start, locale)} → {dateOffset(seg.start + seg.dur - 1, locale)}
                         </span>
                       </li>
                     );
@@ -474,7 +526,10 @@ export function SchedulerView() {
                 </ul>
               ) : (
                 <div className="rounded-xl border border-dashed border-hairline p-5 text-center text-[13px] text-mute">
-                  Aún sin plan. Pulsa “Planificar todo” en la barra superior.
+                  {t({
+                    en: "Not planned yet. Press “Plan all” in the top bar.",
+                    es: "Aún sin plan. Pulsa “Planificar todo” en la barra superior.",
+                  })}
                 </div>
               )}
             </div>
@@ -485,21 +540,34 @@ export function SchedulerView() {
                 disabled={selected.activeSegments.length === 0}
                 onClick={() => {
                   setUrgent((u) => ({ ...u, [selected.id]: true }));
-                  applyShift(selected.id, -1, `${selected.id} marcada urgente · plan adelantado 1 día`);
+                  applyShift(
+                    selected.id,
+                    -1,
+                    t({
+                      en: `${selected.id} marked urgent · plan pulled in 1 day`,
+                      es: `${selected.id} marcada urgente · plan adelantado 1 día`,
+                    })
+                  );
                 }}
                 className="w-full rounded-xl px-4 py-2.5 text-[13px] font-medium transition-opacity hover:opacity-90 disabled:opacity-40"
                 style={{ background: "var(--pl-accent)", color: "var(--pl-accent-ink)" }}
               >
-                ⚡ Marcar urgente (adelanta 1 día)
+                ⚡ {t({ en: "Mark urgent (pull in 1 day)", es: "Marcar urgente (adelanta 1 día)" })}
               </button>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   disabled={selected.activeSegments.length === 0}
-                  onClick={() => applyShift(selected.id, 1, `${selected.id} aplazada 1 día`)}
+                  onClick={() =>
+                    applyShift(
+                      selected.id,
+                      1,
+                      t({ en: `${selected.id} pushed back 1 day`, es: `${selected.id} aplazada 1 día` })
+                    )
+                  }
                   className="rounded-xl border border-hairline px-4 py-2.5 text-[13px] transition-colors hover:border-ink/30 disabled:opacity-40"
                 >
-                  Aplazar 1 día
+                  {t({ en: "Push back 1 day", es: "Aplazar 1 día" })}
                 </button>
                 <button
                   type="button"
@@ -507,11 +575,11 @@ export function SchedulerView() {
                     setShifts((s) => ({ ...s, [selected.id]: 0 }));
                     setUrgent((u) => ({ ...u, [selected.id]: false }));
                     setAnimKey((k) => k + 1);
-                    toast(`${selected.id}: ajustes revertidos`, "info");
+                    toast(t({ en: `${selected.id}: adjustments reverted`, es: `${selected.id}: ajustes revertidos` }), "info");
                   }}
                   className="rounded-xl border border-hairline px-4 py-2.5 text-[13px] transition-colors hover:border-ink/30"
                 >
-                  Quitar ajustes
+                  {t({ en: "Clear adjustments", es: "Quitar ajustes" })}
                 </button>
               </div>
             </div>
@@ -526,6 +594,9 @@ export function SchedulerView() {
 
 function VsRealidad() {
   const totalOutcomes = BACKTEST.outcomes.reduce((a, o) => a + o.value, 0);
+  const locale = useLocale();
+  const t = useT();
+  const { fmtNum, fmtPct, fmtDec } = useFmt();
 
   return (
     <div className="space-y-4">
@@ -533,13 +604,36 @@ function VsRealidad() {
       <div className="relative">
         <Spotlight
           align="right"
-          note="Una validación de 90 días: las mismas órdenes se simulan con el planificador y se comparan con lo que ocurrió en realidad."
+          note={t({
+            en: "A 90-day backtest: the same orders are re-run through the scheduler and compared with what actually happened.",
+            es: "Una validación de 90 días: las mismas órdenes se simulan con el planificador y se comparan con lo que ocurrió en realidad.",
+          })}
         />
         <div className="pl-panel grid gap-px overflow-hidden bg-[var(--hairline)] md:grid-cols-3">
           {[
-            { l: "Real (VETRA)", v: BACKTEST.realOnTime, sub: "entregas a tiempo", tone: "var(--mute)" },
-            { l: "Con Noria Plant OS", v: BACKTEST.algoOnTime, sub: `+${(BACKTEST.algoOnTime - BACKTEST.realOnTime).toFixed(1)} pp sobre lo real`, tone: "var(--pl-accent)", arrow: true },
-            { l: "Techo teórico", v: BACKTEST.ceilingOnTime, sub: "capacidad ilimitada", tone: "var(--mute)", arrow: true },
+            {
+              l: t({ en: "Actual (VETRA)", es: "Real (VETRA)" }),
+              v: BACKTEST.realOnTime,
+              sub: t({ en: "on-time deliveries", es: "entregas a tiempo" }),
+              tone: "var(--mute)",
+            },
+            {
+              l: t({ en: "With Plant OS", es: "Con Plant OS" }),
+              v: BACKTEST.algoOnTime,
+              sub: t({
+                en: `+${fmtDec(BACKTEST.algoOnTime - BACKTEST.realOnTime)} pp over actual`,
+                es: `+${fmtDec(BACKTEST.algoOnTime - BACKTEST.realOnTime)} pp sobre lo real`,
+              }),
+              tone: "var(--pl-accent)",
+              arrow: true,
+            },
+            {
+              l: t({ en: "Theoretical ceiling", es: "Techo teórico" }),
+              v: BACKTEST.ceilingOnTime,
+              sub: t({ en: "unlimited capacity", es: "capacidad ilimitada" }),
+              tone: "var(--mute)",
+              arrow: true,
+            },
           ].map((s) => (
             <div key={s.l} className="relative bg-surface px-6 py-7 text-center">
               {s.arrow && (
@@ -558,10 +652,10 @@ function VsRealidad() {
       {/* Impact strip */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          { l: "OPs salvadas", v: fmtNum(BACKTEST.opsSaved) },
-          { l: "Días tarde evitados", v: fmtNum(BACKTEST.lateDaysAvoided) },
-          { l: "KG salvados", v: `${fmtNum(BACKTEST.kgSaved / 1000)} t` },
-          { l: "Órdenes evaluadas", v: fmtNum(BACKTEST.evaluated) },
+          { l: t({ en: "WOs saved", es: "OPs salvadas" }), v: fmtNum(BACKTEST.opsSaved) },
+          { l: t({ en: "Late days avoided", es: "Días tarde evitados" }), v: fmtNum(BACKTEST.lateDaysAvoided) },
+          { l: t({ en: "KG saved", es: "KG salvados" }), v: `${fmtNum(BACKTEST.kgSaved / 1000)} t` },
+          { l: t({ en: "Orders evaluated", es: "Órdenes evaluadas" }), v: fmtNum(BACKTEST.evaluated) },
         ].map((s) => (
           <div key={s.l} className="pl-panel px-4 py-3.5">
             <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-mute">{s.l}</p>
@@ -573,45 +667,50 @@ function VsRealidad() {
       {/* Charts */}
       <div className="grid gap-3 xl:grid-cols-5">
         <Panel
-          title="Tendencia mensual · % de entregas a tiempo"
+          title={t({ en: "Monthly trend · % on-time deliveries", es: "Tendencia mensual · % de entregas a tiempo" })}
           className="xl:col-span-3"
           accessory={
             <Legend
               items={[
-                { label: "Real", color: "var(--mute)" },
-                { label: "Algoritmo", color: "var(--pl-accent)" },
-                { label: "Techo", color: "var(--st-lam)", dashed: true },
+                { label: t({ en: "Actual", es: "Real" }), color: "var(--mute)" },
+                { label: t({ en: "Algorithm", es: "Algoritmo" }), color: "var(--pl-accent)" },
+                { label: t({ en: "Ceiling", es: "Techo" }), color: "var(--st-lam)", dashed: true },
               ]}
             />
           }
         >
           <LineChart
             series={[
-              { name: "Real", color: "var(--mute)", values: BACKTEST.monthlyReal },
-              { name: "Algoritmo", color: "var(--pl-accent)", values: BACKTEST.monthlyAlgo, area: true },
-              { name: "Techo", color: "var(--st-lam)", values: BACKTEST.monthlyCeiling, dashed: true },
+              { name: t({ en: "Actual", es: "Real" }), color: "var(--mute)", values: BACKTEST.monthlyReal },
+              {
+                name: t({ en: "Algorithm", es: "Algoritmo" }),
+                color: "var(--pl-accent)",
+                values: BACKTEST.monthlyAlgo,
+                area: true,
+              },
+              { name: t({ en: "Ceiling", es: "Techo" }), color: "var(--st-lam)", values: BACKTEST.monthlyCeiling, dashed: true },
             ]}
-            labels={MONTHS_12}
+            labels={MONTHS_12[locale]}
             height={240}
             yFormat={(n) => `${n}%`}
             yMax={100}
           />
         </Panel>
 
-        <Panel title="Distribución de resultados" className="xl:col-span-2">
+        <Panel title={t({ en: "Outcome distribution", es: "Distribución de resultados" })} className="xl:col-span-2">
           <div className="flex flex-wrap items-center justify-center gap-6">
             <Donut
-              data={BACKTEST.outcomes.map((o) => ({ label: o.label, value: o.value, color: o.colorVar }))}
+              data={BACKTEST.outcomes.map((o) => ({ label: t(o.label), value: o.value, color: o.colorVar }))}
               size={180}
               thickness={24}
               centerValue={fmtNum(totalOutcomes)}
-              centerLabel="órdenes"
+              centerLabel={t({ en: "orders", es: "órdenes" })}
             />
             <ul className="space-y-2">
               {BACKTEST.outcomes.map((o) => (
-                <li key={o.label} className="flex items-center gap-2.5 text-[13px]">
+                <li key={o.label.en} className="flex items-center gap-2.5 text-[13px]">
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: o.colorVar }} />
-                  <span className="text-ink/80">{o.label}</span>
+                  <span className="text-ink/80">{t(o.label)}</span>
                   <span className="ml-auto pl-4 font-mono text-xs tabular-nums text-mute">
                     {fmtNum(o.value)} · {Math.round((o.value / totalOutcomes) * 100)}%
                   </span>
@@ -623,19 +722,22 @@ function VsRealidad() {
       </div>
 
       {/* Top saved */}
-      <Panel title="Principales órdenes salvadas por el algoritmo" bodyClassName="overflow-x-auto">
+      <Panel
+        title={t({ en: "Top orders saved by the algorithm", es: "Principales órdenes salvadas por el algoritmo" })}
+        bodyClassName="overflow-x-auto"
+      >
         <table className="pl-table">
           <thead>
             <tr>
-              <th>OP</th>
-              <th>Cliente</th>
-              <th>Producto</th>
+              <th>{t({ en: "WO", es: "OP" })}</th>
+              <th>{t({ en: "Client", es: "Cliente" })}</th>
+              <th>{t({ en: "Product", es: "Producto" })}</th>
               <th className="pl-num">KG</th>
-              <th>Ruta</th>
-              <th>Entrega</th>
-              <th className="pl-num">Real (días tarde)</th>
-              <th className="pl-num">Algoritmo</th>
-              <th className="pl-num">Salvados</th>
+              <th>{t({ en: "Route", es: "Ruta" })}</th>
+              <th>{t({ en: "Due", es: "Entrega" })}</th>
+              <th className="pl-num">{t({ en: "Actual (days late)", es: "Real (días tarde)" })}</th>
+              <th className="pl-num">{t({ en: "Algorithm", es: "Algoritmo" })}</th>
+              <th className="pl-num">{t({ en: "Saved", es: "Salvados" })}</th>
             </tr>
           </thead>
           <tbody>
@@ -643,10 +745,10 @@ function VsRealidad() {
               <tr key={r.op} className="!cursor-default">
                 <td className="font-mono text-xs">{r.op}</td>
                 <td className="font-medium">{r.cliente}</td>
-                <td>{r.producto}</td>
+                <td>{t(r.producto)}</td>
                 <td className="pl-num">{fmtNum(r.kg)}</td>
                 <td className="font-mono text-[11px] text-mute">{r.ruta}</td>
-                <td>{r.entrega}</td>
+                <td>{t(r.entrega)}</td>
                 <td className="pl-num" style={{ color: "var(--danger)" }}>
                   {r.realLate}
                 </td>
@@ -664,11 +766,13 @@ function VsRealidad() {
 
       {/* Methodology */}
       <div className="pl-panel px-5 py-4 text-[13px] leading-relaxed text-mute">
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em]">Metodología · </span>
-        Se replantificaron las {fmtNum(BACKTEST.evaluated)} órdenes cerradas de los últimos 90 días usando las
-        velocidades observadas de cada máquina (kg/h reales, no nominales) y la disponibilidad registrada en VETRA.
-        “Techo teórico” asume capacidad ilimitada y sirve como cota superior: mide cuánto del atraso es estructural y
-        cuánto es planificable.
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em]">
+          {t({ en: "Methodology · ", es: "Metodología · " })}
+        </span>
+        {t({
+          en: `All ${fmtNum(BACKTEST.evaluated)} orders closed in the last 90 days were re-planned using each machine's observed speed (real kg/h, not nameplate) and the availability logged in VETRA. “Theoretical ceiling” assumes unlimited capacity and serves as an upper bound: it measures how much of the lateness is structural and how much can be planned away.`,
+          es: `Se replanificaron las ${fmtNum(BACKTEST.evaluated)} órdenes cerradas de los últimos 90 días usando las velocidades observadas de cada máquina (kg/h reales, no nominales) y la disponibilidad registrada en VETRA. “Techo teórico” asume capacidad ilimitada y sirve como cota superior: mide cuánto del atraso es estructural y cuánto es planificable.`,
+        })}
       </div>
     </div>
   );

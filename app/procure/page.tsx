@@ -1,12 +1,6 @@
-import type { Metadata } from "next";
-import { ProcureDemo } from "@/components/demos/procure/ProcureDemo";
+import { LocaleRedirect } from "@/components/i18n/LocaleRedirect";
 
-export const metadata: Metadata = {
-  title: "Noria Procure — Copiloto de compras",
-  description:
-    "Demo funcional: solicitudes de compra del ERP convertidas en decisiones explicadas y auditables.",
-};
-
-export default function ProcurePage() {
-  return <ProcureDemo />;
+// Pre-i18n link (still shared around); forwards to /en/procure or /es/procure.
+export default function ProcureRedirect() {
+  return <LocaleRedirect path="/procure" />;
 }

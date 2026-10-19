@@ -2,13 +2,14 @@
 
 import { useId, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { useT } from "@/components/i18n/LocaleProvider";
 
 /**
  * Spotlight callout — a small pulsing emerald marker that explains one
  * standout feature on hover/focus. Wrap it around the feature's corner:
  *
  *   <div className="relative">
- *     <Spotlight note="Prices re-rank live as you pick a quote." align="right" />
+ *     <Spotlight note={t({ en: "Prices re-rank…", es: "Los precios…" })} align="right" />
  *     ...feature...
  *   </div>
  */
@@ -23,6 +24,7 @@ export function Spotlight({
 }) {
   const [open, setOpen] = useState(false);
   const id = useId();
+  const t = useT();
 
   return (
     <div
@@ -33,7 +35,7 @@ export function Spotlight({
       <button
         type="button"
         aria-describedby={open ? id : undefined}
-        aria-label="Nota de la función"
+        aria-label={t({ en: "Feature note", es: "Nota de la función" })}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onClick={() => setOpen((v) => !v)}
@@ -54,7 +56,7 @@ export function Spotlight({
               align === "right" ? "right-0" : "left-0"
             }`}
           >
-            <span className="tag !text-[9px] !text-accent">Nota de Noria</span>
+            <span className="tag !text-[9px] !text-accent">{t({ en: "Noria note", es: "Nota de Noria" })}</span>
             <p className="mt-1 text-[13px] leading-snug text-ink/85">{note}</p>
           </motion.div>
         )}

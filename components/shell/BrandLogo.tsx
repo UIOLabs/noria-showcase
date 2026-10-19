@@ -23,7 +23,7 @@ export function BrandLogo({
       fill="none"
       className={className}
       role="img"
-      aria-label="Noria Tecnologías"
+      aria-label="Noria Technologies"
     >
       <g fill="var(--ink)">
         <path d="M149.67724609375 118.0V74.5H155.34130859375L199.03955078125 111.2880859375H199.09619140625V74.5H204.53369140625V118.0H198.86962890625L155.17138671875 80.900390625H155.11474609375V118.0Z" />

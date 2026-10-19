@@ -4,6 +4,8 @@ import "./dispatch.css";
 import { useEffect, useState } from "react";
 import { ToastProvider } from "@/components/ui/Toast";
 import { IntroPanel } from "@/components/annotations/IntroPanel";
+import { useT } from "@/components/i18n/LocaleProvider";
+import type { Text } from "@/lib/i18n";
 import {
   CAMPAIGNS,
   INITIAL_BOARD,
@@ -18,14 +20,15 @@ import { ScriptDetail } from "./views/ScriptDetail";
 
 type ViewId = "dashboard" | "campaigns" | "attempts" | "script";
 
-const NAV: { id: ViewId; label: string }[] = [
-  { id: "dashboard", label: "En vivo" },
-  { id: "campaigns", label: "Campañas" },
-  { id: "attempts", label: "Intentos" },
-  { id: "script", label: "Guion" },
+const NAV: { id: ViewId; label: Text }[] = [
+  { id: "dashboard", label: { en: "Live", es: "En vivo" } },
+  { id: "campaigns", label: { en: "Campaigns", es: "Campañas" } },
+  { id: "attempts", label: { en: "Attempts", es: "Intentos" } },
+  { id: "script", label: { en: "Script", es: "Guion" } },
 ];
 
 export function DispatchDemo() {
+  const t = useT();
   const [view, setView] = useState<ViewId>("dashboard");
   const [board, setBoard] = useState<Board>(INITIAL_BOARD);
   const [campaigns, setCampaigns] = useState<Campaign[]>(CAMPAIGNS);
@@ -58,7 +61,7 @@ export function DispatchDemo() {
               <span className="h-[9px] w-[9px] rounded-full" style={{ background: "var(--ink)" }} />
               <span className="font-mono text-lg font-semibold uppercase tracking-[0.2em]">Dispatch</span>
             </div>
-            <p className="tag !text-[9px] md:mt-1">Despachador de llamadas</p>
+            <p className="tag !text-[9px] md:mt-1">{t({ en: "Call dispatcher", es: "Despachador de llamadas" })}</p>
           </div>
 
           <nav className="mt-3 flex gap-1 overflow-x-auto md:mt-10 md:flex-col md:gap-0.5">
@@ -78,7 +81,7 @@ export function DispatchDemo() {
                     className="h-1 w-1 rounded-full transition-colors"
                     style={{ background: active ? "var(--accent-glow)" : "var(--mute)" }}
                   />
-                  {n.label}
+                  {t(n.label)}
                   {n.id === "dashboard" && (
                     <span className="ml-auto hidden font-mono text-[10px] tabular-nums text-mute md:inline">
                       {board.calls.length}
@@ -92,7 +95,7 @@ export function DispatchDemo() {
           <div className="mt-6 hidden border-t border-hairline pt-4 md:block">
             <p className="font-mono text-[10px] text-mute">operador@demo.noria</p>
             <button type="button" className="mt-1 text-[12px] text-mute transition-colors hover:text-ink">
-              Cerrar sesión
+              {t({ en: "Sign out", es: "Cerrar sesión" })}
             </button>
           </div>
         </aside>
@@ -100,12 +103,21 @@ export function DispatchDemo() {
         {/* Main pane */}
         <div className="min-w-0 flex-1 px-4 py-6 md:px-10 md:py-8">
           <IntroPanel
-            kicker="Noria Dispatch"
-            title="Operaciones de voz con IA"
+            kicker={t({ en: "Client build", es: "Proyecto de cliente" })}
+            title={t({ en: "AI voice operations for collections", es: "Operaciones de voz con IA para cobranza" })}
             points={[
-              "Los agentes de voz con IA llaman y una persona toma el control en cuanto alguien responde.",
-              "Las llamadas se detienen al conectar: nadie recibe una llamada duplicada.",
-              "Todos los nombres, números y saldos son ficticios.",
+              t({
+                en: "AI voice agents dial; a person takes over the moment someone answers.",
+                es: "Los agentes de voz con IA llaman y una persona toma el control en cuanto alguien responde.",
+              }),
+              t({
+                en: "Dialing stops on connect: nobody gets a duplicate call.",
+                es: "Las llamadas se detienen al conectar: nadie recibe una llamada duplicada.",
+              }),
+              t({
+                en: "The calls are in Spanish; every name, number and balance is fictional.",
+                es: "Todos los nombres, números y saldos son ficticios.",
+              }),
             ]}
           />
 

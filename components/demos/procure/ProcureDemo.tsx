@@ -4,7 +4,9 @@ import "./procure.css";
 import { AnimatePresence, motion } from "motion/react";
 import { IntroPanel } from "@/components/annotations/IntroPanel";
 import { ToastProvider } from "@/components/ui/Toast";
-import { ProcureProvider, useProcure, type View } from "./state";
+import { useT } from "@/components/i18n/LocaleProvider";
+import type { Text } from "@/lib/i18n";
+import { ProcureProvider, ROLE_LABEL, useProcure, type View } from "./state";
 import { ProcureModals } from "./modals";
 import { Centro } from "./views/Centro";
 import { Bandeja } from "./views/Bandeja";
@@ -21,33 +23,55 @@ export function ProcureDemo() {
   );
 }
 
-const NAV: { id: View; label: string; icon: string }[] = [
-  { id: "centro", label: "Centro SIGA", icon: "⌂" },
-  { id: "bandeja", label: "Bandeja", icon: "▦" },
-  { id: "automatizaciones", label: "Automatizaciones", icon: "◎" },
+const NAV: { id: View; label: Text; icon: string }[] = [
+  { id: "centro", label: { en: "SIGA hub", es: "Centro SIGA" }, icon: "⌂" },
+  { id: "bandeja", label: { en: "Inbox", es: "Bandeja" }, icon: "▦" },
+  { id: "automatizaciones", label: { en: "Automations", es: "Automatizaciones" }, icon: "◎" },
 ];
 
-const TITLES: Record<View, { title: string; sub: string }> = {
-  centro: { title: "Centro de compras", sub: "Sincronizado con SIGA ERP · datos de demostración" },
-  bandeja: { title: "Bandeja de solicitudes", sub: "Todas las colas · filtra, compara y decide" },
-  detalle: { title: "Detalle del caso", sub: "Cotizaciones, recomendación y auditoría" },
-  automatizaciones: { title: "Automatizaciones", sub: "Reglas de auto-aprobación con tolerancias" },
+const TITLES: Record<View, { title: Text; sub: Text }> = {
+  centro: {
+    title: { en: "Purchasing hub", es: "Centro de compras" },
+    sub: { en: "Synced with SIGA ERP · demo data", es: "Sincronizado con SIGA ERP · datos de demostración" },
+  },
+  bandeja: {
+    title: { en: "Request inbox", es: "Bandeja de solicitudes" },
+    sub: { en: "Every queue · filter, compare and decide", es: "Todas las colas · filtra, compara y decide" },
+  },
+  detalle: {
+    title: { en: "Case detail", es: "Detalle del caso" },
+    sub: { en: "Quotes, recommendation and audit trail", es: "Cotizaciones, recomendación y auditoría" },
+  },
+  automatizaciones: {
+    title: { en: "Automations", es: "Automatizaciones" },
+    sub: { en: "Auto-approval rules with tolerances", es: "Reglas de auto-aprobación con tolerancias" },
+  },
 };
 
 function ProcureInner() {
   const { view, go, selected, role, toggleRole, startTour } = useProcure();
   const activeNav = view === "detalle" ? "bandeja" : view;
   const heading = TITLES[view];
+  const t = useT();
 
   return (
-    <div className="demo-procure mx-auto max-w-[1600px] px-4 py-6 md:px-8" lang="es">
+    <div className="demo-procure mx-auto max-w-[1600px] px-4 py-6 md:px-8">
       <IntroPanel
-        kicker="Noria Procure"
-        title="Copiloto de compras"
+        kicker={t({ en: "Client build", es: "Proyecto de cliente" })}
+        title={t({ en: "Procurement copilot for a manufacturer", es: "Copiloto de compras para un fabricante" })}
         points={[
-          "Lee las solicitudes de compra directamente del ERP del cliente.",
-          "La IA recomienda, explica, redacta y deja un rastro de auditoría.",
-          "Todo es interactivo y cada registro contiene datos de demostración.",
+          t({
+            en: "Reads purchase requests straight from the client's ERP.",
+            es: "Lee las solicitudes de compra directamente del ERP del cliente.",
+          }),
+          t({
+            en: "The AI recommends, explains, drafts, and leaves an audit trail.",
+            es: "La IA recomienda, explica, redacta y deja un rastro de auditoría.",
+          }),
+          t({
+            en: "Everything is clickable and every record is demo data.",
+            es: "Todo es interactivo y cada registro contiene datos de demostración.",
+          }),
         ]}
       />
 
@@ -63,12 +87,12 @@ function ProcureInner() {
                 P
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[13.5px] font-bold tracking-tight">Noria Procure</p>
-                <p className="truncate text-[10.5px] text-mute">Centro de compras SIGA</p>
+                <p className="truncate text-[13.5px] font-bold tracking-tight">Procure</p>
+                <p className="truncate text-[10.5px] text-mute">{t({ en: "SIGA purchasing hub", es: "Centro de compras SIGA" })}</p>
               </div>
             </div>
 
-            <nav className="mt-2 flex gap-1 lg:flex-col" aria-label="Secciones del producto">
+            <nav className="mt-2 flex gap-1 lg:flex-col" aria-label={t({ en: "Sections", es: "Secciones" })}>
               {NAV.map((n) => {
                 const active = activeNav === n.id;
                 return (
@@ -83,16 +107,19 @@ function ProcureInner() {
                     aria-current={active ? "page" : undefined}
                   >
                     <span className="w-4 text-center">{n.icon}</span>
-                    <span className="hidden sm:inline">{n.label}</span>
+                    <span className="hidden sm:inline">{t(n.label)}</span>
                   </button>
                 );
               })}
             </nav>
 
             <div className="mt-3 hidden rounded-xl border border-dashed border-hairline p-3 lg:block">
-              <p className="tag !text-[9px]">Modo demo</p>
+              <p className="tag !text-[9px]">{t({ en: "Demo mode", es: "Modo demo" })}</p>
               <p className="mt-1 text-[11px] leading-relaxed text-mute">
-                Sin backend: la IA es determinística y los datos son ficticios.
+                {t({
+                  en: "No backend: the AI is deterministic and the data is fictional.",
+                  es: "Sin backend: la IA es determinística y los datos son ficticios.",
+                })}
               </p>
               <button
                 type="button"
@@ -100,7 +127,7 @@ function ProcureInner() {
                 className="mt-2 w-full rounded-lg py-1.5 text-[11.5px] font-semibold transition-transform active:scale-[0.98]"
                 style={{ background: "var(--pr-brand-soft)", color: "var(--pr-brand)", border: "1px solid var(--pr-brand-border)" }}
               >
-                Demo guiada ▸
+                {t({ en: "Guided demo ▸", es: "Demo guiado ▸" })}
               </button>
             </div>
           </div>
@@ -112,24 +139,24 @@ function ProcureInner() {
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <div className="min-w-0">
               <h1 className="truncate text-lg font-semibold tracking-tight md:text-xl">
-                {heading.title}
+                {t(heading.title)}
                 {view === "detalle" && selected ? (
                   <span className="text-mute"> · {selected.id}</span>
                 ) : null}
               </h1>
-              <p className="truncate text-[12px] text-mute">{heading.sub}</p>
+              <p className="truncate text-[12px] text-mute">{t(heading.sub)}</p>
             </div>
             <div className="ml-auto flex items-center gap-2">
               <span className="hidden items-center gap-2 rounded-full border border-hairline px-3 py-1.5 text-[11.5px] text-mute md:inline-flex">
                 <span className="h-1.5 w-1.5 rounded-full animate-dot-pulse" style={{ background: "var(--ok)" }} />
-                SIGA conectado · 08:48
+                {t({ en: "SIGA connected · 08:48", es: "SIGA conectado · 08:48" })}
               </span>
               <button
                 type="button"
                 onClick={toggleRole}
                 className="rounded-full border border-hairline px-3 py-1.5 text-[11.5px] font-medium text-ink transition-colors hover:border-ink/40"
               >
-                Vista: {role} ⇄
+                {t({ en: "View", es: "Vista" })}: {t(ROLE_LABEL[role])} ⇄
               </button>
             </div>
           </div>

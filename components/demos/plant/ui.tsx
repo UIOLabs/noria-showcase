@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "@/components/i18n/LocaleProvider";
+import { STATE_LABEL } from "./data";
 
 /** Fake first-load: views shimmer briefly before data "arrives". */
 export function useLoaded(ms = 600) {
@@ -141,8 +143,9 @@ export function StatChip({
   );
 }
 
-/** Estado badge (tabla de órdenes). */
+/** Estado badge (tabla de órdenes). `estado` is the Spanish state key. */
 export function EstadoBadge({ estado }: { estado: string }) {
+  const t = useT();
   const map: Record<string, { c: string; bg: boolean }> = {
     "En producción": { c: "var(--ok)", bg: true },
     "Pendiente OP": { c: "var(--warn)", bg: true },
@@ -161,7 +164,7 @@ export function EstadoBadge({ estado }: { estado: string }) {
       style={{ color: s.c, background: `color-mix(in oklab, ${s.c} 12%, transparent)` }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.c }} />
-      {estado}
+      {STATE_LABEL[estado] ? t(STATE_LABEL[estado]) : estado}
     </span>
   );
 }

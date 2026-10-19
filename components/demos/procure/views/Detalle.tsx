@@ -3,19 +3,21 @@
 import { useMemo, useState } from "react";
 import { HBars, type HBarDatum } from "@/components/charts/HBars";
 import { Spotlight } from "@/components/annotations/Spotlight";
-import { AI_ACTIONS, aiText, isAutomatable, variance, type AiAction } from "../ai";
-import { fmtUSD, recommendedQuote, type PurchaseRequest, type Quote } from "../data";
+import { useLocale, useT } from "@/components/i18n/LocaleProvider";
+import { AI_ACTIONS, aiText, isAutomatable, pct, variance, type AiAction } from "../ai";
+import { AUTH_STATE_LABEL, recommendedQuote, useFmt, type PurchaseRequest, type Quote } from "../data";
 import { AiMark, BrandButton, KV, Panel, PanelHead, QueueBadge, RiskBadge, StatusBadge } from "../bits";
 import { useProcure } from "../state";
 
 export function Detalle() {
   const { selected, go } = useProcure();
+  const t = useT();
   if (!selected) {
     return (
       <div className="rounded-2xl border border-dashed border-hairline p-14 text-center">
-        <p className="text-[14px] font-medium">Ningún caso seleccionado</p>
+        <p className="text-[14px] font-medium">{t({ en: "No case selected", es: "Ningún caso seleccionado" })}</p>
         <BrandButton small variant="soft" className="mt-4" onClick={() => go("bandeja")}>
-          Ir a la bandeja
+          {t({ en: "Go to the inbox", es: "Ir a la bandeja" })}
         </BrandButton>
       </div>
     );
@@ -35,6 +37,9 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
     setModal,
     role,
   } = useProcure();
+  const locale = useLocale();
+  const t = useT();
+  const { fmtUSD } = useFmt();
 
   const selQuote: Quote | undefined = useMemo(
     () => r.quotes.find((q) => q.id === selectedQuotes[r.id]) ?? recommendedQuote(r),
@@ -49,7 +54,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
     const rows: HBarDatum[] = [];
     if (r.history.lastPrice !== null) {
       rows.push({
-        label: "Última compra SIGA",
+        label: t({ en: "Last SIGA purchase", es: "Última compra SIGA" }),
         value: r.history.lastPrice,
         color: "var(--info)",
         valueLabel: fmtUSD(r.history.lastPrice),
@@ -67,7 +72,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
       });
     }
     return rows;
-  }, [r, selQuote]);
+  }, [r, selQuote, t, fmtUSD]);
 
   const audit = [...r.audit, ...(extraAudit[r.id] ?? [])];
 
@@ -76,12 +81,12 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <BrandButton small variant="ghost" onClick={() => go("bandeja")}>
-          ← Volver a la bandeja
+          ← {t({ en: "Back to the inbox", es: "Volver a la bandeja" })}
         </BrandButton>
         <span className="font-mono text-[11px] text-mute">{r.id}</span>
         <div className="ml-auto">
           <BrandButton small variant="soft" onClick={nextTourCase}>
-            Siguiente caso demo ▸
+            {t({ en: "Next demo case ▸", es: "Siguiente caso demo ▸" })}
           </BrandButton>
         </div>
       </div>
@@ -93,26 +98,26 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
           <Panel className="p-6">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-[10px] uppercase tracking-[0.18em]" style={{ color: "var(--pr-brand)" }}>
-                {r.scenario}
+                {t(r.scenario)}
               </span>
               <QueueBadge queue={r.queue} />
               {decided ? <StatusBadge status={decided} /> : <RiskBadge risk={r.recommendation.risk} />}
             </div>
             <h2 className="mt-2.5 text-xl font-semibold tracking-tight md:text-2xl">
-              {r.material.name}
+              {t(r.material.name)}
             </h2>
             <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-ink/70">
-              {r.request.observation}
+              {t(r.request.observation)}
             </p>
             {r.flags.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {r.flags.map((f) => (
                   <span
-                    key={f}
+                    key={f.en}
                     className="rounded-full px-2.5 py-0.5 text-[11px] font-medium"
                     style={{ background: "var(--pr-warn-soft)", color: "var(--warn)" }}
                   >
-                    ⚑ {f}
+                    ⚑ {t(f)}
                   </span>
                 ))}
               </div>
@@ -124,7 +129,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
             <div className="flex items-center gap-2">
               <AiMark />
               <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--pr-dark-mute)]">
-                Recomendación del copiloto
+                {t({ en: "Copilot recommendation", es: "Recomendación del copiloto" })}
               </span>
             </div>
             <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
@@ -133,7 +138,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
                   {r.recommendation.supplier}
                 </p>
                 <p className="mt-1.5 max-w-xl text-[13px] leading-relaxed text-[var(--pr-dark-mute)]">
-                  {r.recommendation.summary}
+                  {t(r.recommendation.summary)}
                 </p>
               </div>
               {r.recommendation.savings && (
@@ -141,7 +146,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
                   className="rounded-full px-3 py-1.5 text-[12px] font-semibold"
                   style={{ background: "color-mix(in oklab, var(--ok) 18%, transparent)", color: "var(--ok)" }}
                 >
-                  ↓ {r.recommendation.savings}
+                  ↓ {t(r.recommendation.savings)}
                 </span>
               )}
             </div>
@@ -149,17 +154,23 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
 
           {/* Contexto SIGA */}
           <Panel>
-            <PanelHead title="Contexto SIGA" sub="Lo que el ERP sabe de este material" />
+            <PanelHead
+              title={t({ en: "SIGA context", es: "Contexto SIGA" })}
+              sub={t({ en: "What the ERP knows about this material", es: "Lo que el ERP sabe de este material" })}
+            />
             <dl className="grid grid-cols-2 gap-2.5 p-5 md:grid-cols-4">
-              <KV k="Código" v={r.material.code} mono />
-              <KV k="Cantidad" v={`${r.request.quantity} ${r.material.unit}`} mono />
-              <KV k="Solicitante" v={r.request.requester} />
-              <KV k="Aprobador" v={r.request.approver} />
-              <KV k="Área" v={r.request.area} />
-              <KV k="Estado SIGA" v={r.authorization.state} />
-              <KV k="Último proveedor" v={r.history.lastSupplier ?? "Sin historial"} />
+              <KV k={t({ en: "Code", es: "Código" })} v={r.material.code} mono />
+              <KV k={t({ en: "Quantity", es: "Cantidad" })} v={`${r.request.quantity} ${t(r.material.unit)}`} mono />
+              <KV k={t({ en: "Requester", es: "Solicitante" })} v={r.request.requester} />
+              <KV k={t({ en: "Approver", es: "Aprobador" })} v={r.request.approver} />
+              <KV k={t({ en: "Area", es: "Área" })} v={t(r.request.area)} />
+              <KV k={t({ en: "SIGA status", es: "Estado SIGA" })} v={t(AUTH_STATE_LABEL[r.authorization.state])} />
               <KV
-                k="Último precio"
+                k={t({ en: "Last supplier", es: "Último proveedor" })}
+                v={r.history.lastSupplier ?? t({ en: "No history", es: "Sin historial" })}
+              />
+              <KV
+                k={t({ en: "Last price", es: "Último precio" })}
                 v={r.history.lastPrice !== null ? fmtUSD(r.history.lastPrice) : "—"}
                 mono
               />
@@ -168,14 +179,22 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
 
           {/* Cotizaciones */}
           <Panel className="relative">
-            <Spotlight note="Elige una cotización: los totales, la variación, el gráfico y el análisis de IA se actualizan al instante." />
+            <Spotlight
+              note={t({
+                en: "Pick a quote: totals, variance, the chart and the AI analysis update instantly.",
+                es: "Elige una cotización: los totales, la variación, el gráfico y el análisis de IA se actualizan al instante.",
+              })}
+            />
             <PanelHead
-              title="Cotizaciones"
-              sub={`${r.quotes.length} de 3 requeridas por política`}
+              title={t({ en: "Quotes", es: "Cotizaciones" })}
+              sub={t({
+                en: `${r.quotes.length} of 3 required by policy`,
+                es: `${r.quotes.length} de 3 requeridas por política`,
+              })}
               right={
                 r.quotes.length < 3 ? (
                   <BrandButton small onClick={() => setModal({ kind: "email", requestId: r.id })}>
-                    Pedir cotización faltante
+                    {t({ en: "Request the missing quote", es: "Pedir cotización faltante" })}
                   </BrandButton>
                 ) : undefined
               }
@@ -183,7 +202,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
             <div className="space-y-5 p-5">
               {r.quotes.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-hairline p-8 text-center text-[13px] text-mute">
-                  Sin cotizaciones registradas todavía.
+                  {t({ en: "No quotes recorded yet.", es: "Sin cotizaciones registradas todavía." })}
                 </p>
               ) : (
                 <>
@@ -192,7 +211,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
                       <QuoteCard
                         key={q.id}
                         q={q}
-                        unit={r.material.unit}
+                        unit={t(r.material.unit)}
                         selected={q.id === selQuote?.id}
                         recommended={q.supplier === r.recommendation.supplier}
                         onSelect={() => selectQuote(r.id, q.id)}
@@ -202,14 +221,17 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
 
                   <div>
                     <p className="mb-1 text-[12px] font-medium text-mute">
-                      Precio unitario · comparado con la última compra registrada
+                      {t({
+                        en: "Unit price · compared with the last recorded purchase",
+                        es: "Precio unitario · comparado con la última compra registrada",
+                      })}
                     </p>
                     <HBars
                       data={chartData}
                       rowHeight={32}
                       labelWidth={150}
                       format={(n) => fmtUSD(n)}
-                      tipLabel="Precio unitario"
+                      tipLabel={t({ en: "Unit price", es: "Precio unitario" })}
                     />
                   </div>
 
@@ -226,16 +248,22 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
           <div className="relative rounded-2xl border border-hairline bg-surface">
             <Spotlight
               align="right"
-              note="Siete consultas de un toque. El resultado se calcula con los datos de esta solicitud: determinístico y auditable."
+              note={t({
+                en: "Seven one-tap queries. Each answer is computed from this request's own data: deterministic and auditable.",
+                es: "Siete consultas de un toque. El resultado se calcula con los datos de esta solicitud: determinístico y auditable.",
+              })}
             />
             <div className="flex items-center gap-2.5 rounded-t-2xl px-4 py-3" style={{ background: "var(--pr-hero-grad)" }}>
               <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 text-[11px] font-black text-white">
                 ◈
               </span>
               <div>
-                <p className="text-[13px] font-semibold text-white">Copiloto IA</p>
+                <p className="text-[13px] font-semibold text-white">{t({ en: "AI copilot", es: "Copiloto IA" })}</p>
                 <p className="text-[10.5px] text-white/70">
-                  No aprueba en silencio: recomienda, explica y deja evidencia.
+                  {t({
+                    en: "Never approves silently: it recommends, explains and leaves evidence.",
+                    es: "No aprueba en silencio: recomienda, explica y deja evidencia.",
+                  })}
                 </p>
               </div>
             </div>
@@ -253,13 +281,13 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
                         : { borderColor: "var(--hairline)", color: "var(--mute)" }
                     }
                   >
-                    {a.label}
+                    {t(a.label)}
                   </button>
                 ))}
               </div>
               <div className="pr-ai-output mt-3 rounded-xl p-3.5">
                 <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-ink/85">
-                  {aiText(aiAction, r, selQuote)}
+                  {aiText(aiAction, r, selQuote, locale)}
                 </p>
               </div>
               {aiAction === "correo" && (
@@ -269,7 +297,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
                   className="mt-2.5 w-full"
                   onClick={() => setModal({ kind: "email", requestId: r.id })}
                 >
-                  Abrir borrador editable
+                  {t({ en: "Open the editable draft", es: "Abrir borrador editable" })}
                 </BrandButton>
               )}
             </div>
@@ -278,17 +306,21 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
           {/* Autorización */}
           <Panel>
             <PanelHead
-              title="Autorización SIGA"
-              sub={role === "Jefatura" ? "Vista de jefatura · puede resolver" : "Vista de compras"}
+              title={t({ en: "SIGA authorization", es: "Autorización SIGA" })}
+              sub={
+                role === "Jefatura"
+                  ? t({ en: "Manager view · can decide", es: "Vista de jefatura · puede resolver" })
+                  : t({ en: "Purchasing view", es: "Vista de compras" })
+              }
             />
             <div className="space-y-3 p-4">
               <dl className="grid grid-cols-2 gap-2">
-                <KV k="N.º autorización" v={r.authorization.number} mono />
-                <KV k="Estado" v={r.authorization.state} />
-                <KV k="Monto máximo" v={fmtUSD(r.authorization.maxValue)} mono />
-                <KV k="Vence" v={r.authorization.expires} mono />
-                <KV k="Solicita" v={r.authorization.requester} mono />
-                <KV k="Autoriza" v={r.authorization.approver} mono />
+                <KV k={t({ en: "Authorization no.", es: "N.º autorización" })} v={r.authorization.number} mono />
+                <KV k={t({ en: "Status", es: "Estado" })} v={t(AUTH_STATE_LABEL[r.authorization.state])} />
+                <KV k={t({ en: "Max amount", es: "Monto máximo" })} v={fmtUSD(r.authorization.maxValue)} mono />
+                <KV k={t({ en: "Expires", es: "Vence" })} v={r.authorization.expires} mono />
+                <KV k={t({ en: "Requested by", es: "Solicita" })} v={r.authorization.requester} mono />
+                <KV k={t({ en: "Approved by", es: "Autoriza" })} v={r.authorization.approver} mono />
               </dl>
 
               {total !== null && (
@@ -299,28 +331,31 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
                     color: overLimit ? "var(--danger)" : "var(--ok)",
                   }}
                 >
-                  <span>Total con la oferta elegida</span>
+                  <span>{t({ en: "Total with the chosen offer", es: "Total con la oferta elegida" })}</span>
                   <span className="font-mono tabular-nums">{fmtUSD(total)}</span>
                 </div>
               )}
               {overLimit && (
                 <p className="text-[11.5px] leading-snug text-mute">
-                  Supera el tope autorizado: SIGA exigirá una autorización ampliada.
+                  {t({
+                    en: "Over the authorized cap: SIGA will require an extended authorization.",
+                    es: "Supera el tope autorizado: SIGA exigirá una autorización ampliada.",
+                  })}
                 </p>
               )}
 
               {decided ? (
                 <div className="flex items-center justify-center gap-2 rounded-xl border border-hairline py-3">
                   <StatusBadge status={decided} />
-                  <span className="text-[12px] text-mute">registrada en SIGA</span>
+                  <span className="text-[12px] text-mute">{t({ en: "logged in SIGA", es: "registrada en SIGA" })}</span>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   <BrandButton onClick={() => setModal({ kind: "approval", requestId: r.id })}>
-                    Aprobar…
+                    {t({ en: "Approve…", es: "Aprobar…" })}
                   </BrandButton>
                   <BrandButton variant="ghost" onClick={() => decide(r.id, "devuelta")}>
-                    Devolver
+                    {t({ en: "Return", es: "Devolver" })}
                   </BrandButton>
                   {isAutomatable(r) && (
                     <BrandButton
@@ -328,7 +363,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
                       className="col-span-2"
                       onClick={() => setModal({ kind: "rule", requestId: r.id })}
                     >
-                      ◈ Crear regla automática
+                      ◈ {t({ en: "Create automatic rule", es: "Crear regla automática" })}
                     </BrandButton>
                   )}
                 </div>
@@ -338,7 +373,10 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
 
           {/* Auditoría */}
           <Panel>
-            <PanelHead title="Auditoría" sub="Trazabilidad completa del caso" />
+            <PanelHead
+              title={t({ en: "Audit", es: "Auditoría" })}
+              sub={t({ en: "Full trail for this case", es: "Trazabilidad completa del caso" })}
+            />
             <ol className="space-y-0 p-4">
               {audit.map((line, i) => (
                 <li key={i} className="relative flex gap-3 pb-4 last:pb-0">
@@ -352,7 +390,7 @@ function DetalleInner({ r }: { r: PurchaseRequest }) {
                       background: i === audit.length - 1 ? "var(--pr-brand)" : "var(--surface)",
                     }}
                   />
-                  <span className="text-[12px] leading-relaxed text-ink/75">{line}</span>
+                  <span className="text-[12px] leading-relaxed text-ink/75">{t(line)}</span>
                 </li>
               ))}
             </ol>
@@ -376,6 +414,8 @@ function QuoteCard({
   recommended: boolean;
   onSelect: () => void;
 }) {
+  const t = useT();
+  const { fmtUSD } = useFmt();
   return (
     <button
       type="button"
@@ -392,7 +432,7 @@ function QuoteCard({
             className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold"
             style={{ background: "var(--pr-brand-soft)", color: "var(--pr-brand)" }}
           >
-            ◈ IA
+            ◈ {t({ en: "AI", es: "IA" })}
           </span>
         )}
       </div>
@@ -401,13 +441,16 @@ function QuoteCard({
         <span className="ml-1 text-[11px] font-normal text-mute">/ {unit}</span>
       </p>
       <p className="mt-1.5 text-[11.5px] text-mute">
-        Entrega {q.deliveryDays} días · {q.paymentTerms} · vence {q.validUntil.slice(5)}
+        {t({
+          en: `${q.deliveryDays}-day delivery · ${q.paymentTerms.en} · valid to ${q.validUntil.slice(5)}`,
+          es: `Entrega ${q.deliveryDays} días · ${q.paymentTerms.es} · vence ${q.validUntil.slice(5)}`,
+        })}
       </p>
       {q.badges.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">
           {q.badges.map((b) => (
-            <span key={b} className="rounded-full border border-hairline px-2 py-0.5 text-[10px] text-mute">
-              {b}
+            <span key={b.en} className="rounded-full border border-hairline px-2 py-0.5 text-[10px] text-mute">
+              {t(b)}
             </span>
           ))}
         </div>
@@ -417,17 +460,20 @@ function QuoteCard({
 }
 
 function DecisionTable({ r, selQuote }: { r: PurchaseRequest; selQuote: Quote | undefined }) {
+  const locale = useLocale();
+  const t = useT();
+  const { fmtUSD } = useFmt();
   return (
     <div className="overflow-x-auto rounded-xl border border-hairline">
       <table className="w-full min-w-[560px] text-left text-[12.5px]">
         <thead>
           <tr className="border-b border-hairline bg-surface-2 font-mono text-[10px] uppercase tracking-[0.12em] text-mute">
-            <th className="px-3.5 py-2.5 font-medium">Proveedor</th>
-            <th className="px-3.5 py-2.5 font-medium">Unitario</th>
+            <th className="px-3.5 py-2.5 font-medium">{t({ en: "Supplier", es: "Proveedor" })}</th>
+            <th className="px-3.5 py-2.5 font-medium">{t({ en: "Unit", es: "Unitario" })}</th>
             <th className="px-3.5 py-2.5 font-medium">Total</th>
-            <th className="px-3.5 py-2.5 font-medium">Entrega</th>
-            <th className="px-3.5 py-2.5 font-medium">Variación</th>
-            <th className="px-3.5 py-2.5 font-medium">Lectura IA</th>
+            <th className="px-3.5 py-2.5 font-medium">{t({ en: "Delivery", es: "Entrega" })}</th>
+            <th className="px-3.5 py-2.5 font-medium">{t({ en: "Change", es: "Variación" })}</th>
+            <th className="px-3.5 py-2.5 font-medium">{t({ en: "AI reading", es: "Lectura IA" })}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[var(--hairline)]">
@@ -435,10 +481,10 @@ function DecisionTable({ r, selQuote }: { r: PurchaseRequest; selQuote: Quote | 
             const v = variance(r, q);
             const reading =
               r.history.lastPrice === null
-                ? "Sin historial"
+                ? t({ en: "No history", es: "Sin historial" })
                 : v !== null && Math.abs(v) > 0.08
-                  ? "Revisión manual"
-                  : "Dentro de rango";
+                  ? t({ en: "Manual review", es: "Revisión manual" })
+                  : t({ en: "Within range", es: "Dentro de rango" });
             const isSel = q.id === selQuote?.id;
             return (
               <tr key={q.id} className={isSel ? "bg-surface-2" : undefined}>
@@ -450,7 +496,9 @@ function DecisionTable({ r, selQuote }: { r: PurchaseRequest; selQuote: Quote | 
                 <td className="px-3.5 py-2.5 font-mono tabular-nums">
                   {fmtUSD(q.unitPrice * r.request.quantity)}
                 </td>
-                <td className="px-3.5 py-2.5 text-mute">{q.deliveryDays} días</td>
+                <td className="px-3.5 py-2.5 text-mute">
+                  {q.deliveryDays} {t({ en: "days", es: "días" })}
+                </td>
                 <td
                   className="px-3.5 py-2.5 font-mono tabular-nums"
                   style={{
@@ -464,7 +512,7 @@ function DecisionTable({ r, selQuote }: { r: PurchaseRequest; selQuote: Quote | 
                             : "var(--mute)",
                   }}
                 >
-                  {v === null ? "—" : `${v > 0 ? "+" : ""}${(v * 100).toFixed(1).replace(".", ",")} %`}
+                  {v === null ? "—" : pct(v, locale)}
                 </td>
                 <td className="px-3.5 py-2.5 text-mute">{reading}</td>
               </tr>

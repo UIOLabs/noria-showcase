@@ -1,12 +1,6 @@
-import type { Metadata } from "next";
-import { PlantDemo } from "@/components/demos/plant/PlantDemo";
+import { LocaleRedirect } from "@/components/i18n/LocaleRedirect";
 
-export const metadata: Metadata = {
-  title: "Noria Plant OS — Control de manufactura",
-  description:
-    "Demo funcional: planta en vivo, planificación de capacidad finita y análisis de márgenes.",
-};
-
-export default function PlantPage() {
-  return <PlantDemo />;
+// Pre-i18n link (still shared around); forwards to /en/plant or /es/plant.
+export default function PlantRedirect() {
+  return <LocaleRedirect path="/plant" />;
 }

@@ -1,7 +1,8 @@
-# Noria — Product Lines Showcase
+# Noria — Client Work Showcase
 
-A front-end-only, fully clickable showcase of three products built by **Noria
-Technologies**, presented as one Noria-branded site with a product switcher.
+A front-end-only, fully clickable showcase of three systems **Noria
+Technologies** built for clients, presented as one Noria-branded site with a
+demo switcher, in English and Spanish.
 Each tab drops you into a working demo — buttons, filters, modals, charts, and
 live boards all respond — with **no backend, no database, no external APIs**.
 Everything runs off mocked demo state in the browser and exports to static HTML.
@@ -22,13 +23,30 @@ Static build (deployable to any static host):
 pnpm build     # outputs ./out
 ```
 
-## The three product lines
+## The three client builds
 
-| Route | Product line | What it is | Demo UI language |
-|---|---|---|---|
-| `/procure` | **Noria Procure** | AI procurement copilot on top of a client ERP — turns purchase requests into explained, auditable decisions | Spanish |
-| `/plant` | **Noria Plant OS** | Manufacturing control center — live factory floor, finite-capacity scheduling with a "vs reality" backtest, margin & scrap analytics | Spanish |
-| `/dispatch` | **Noria Dispatch** | AI voice operations for collections — AI agents dial, humans take over the moment someone answers | English |
+| Route | Build | What it is |
+|---|---|---|
+| `/{en,es}/procure` | **Procure** | AI procurement copilot on top of a client ERP — turns purchase requests into explained, auditable decisions |
+| `/{en,es}/plant` | **Plant OS** | Manufacturing control center — live factory floor, finite-capacity scheduling with a "vs reality" backtest, margin & scrap analytics |
+| `/{en,es}/dispatch` | **Dispatch** | AI voice operations for collections — AI agents dial, humans take over the moment someone answers |
+
+## Languages
+
+Every page lives under `/en` or `/es`. Copy is written as `{ en, es }` pairs
+next to where it's used — demo data included — and `useT()`
+([`components/i18n/LocaleProvider.tsx`](components/i18n/LocaleProvider.tsx))
+picks the active side; number and date formats follow the locale too.
+
+- Unprefixed URLs (`/`, and the old `/procure`, `/plant`, `/dispatch` links)
+  are static pages that forward to the visitor's saved choice, else their
+  browser language, else English. A static export has no middleware.
+- The EN/ES switch in the nav keeps you on the same screen and remembers the
+  choice (`localStorage["noria-locale"]`).
+- Dispatch's calls happen in Spanish, so transcripts, the voice script and the
+  variables sent to it stay Spanish in both languages; everything the operator
+  reads about a call is translated.
+- Link previews are static images in `public/og-{en,es}.png`.
 
 ## The plan (as executed)
 
@@ -59,9 +77,12 @@ emerald glows — no drop shadows, no gloss.
 
 ```
 app/
-  layout.tsx            fonts, theme bootstrap, Noria shell
-  page.tsx              product index (one viewport, three doors — not a landing page)
-  procure|plant|dispatch/page.tsx
+  layout.tsx            passthrough (globals.css)
+  [locale]/layout.tsx   <html lang>, fonts, theme bootstrap, Noria shell
+  [locale]/page.tsx     client-work index (one viewport, three doors + book-a-call)
+  [locale]/procure|plant|dispatch/page.tsx
+  page.tsx, procure|plant|dispatch/page.tsx   locale redirects
+  not-found.tsx         bilingual 404
 components/
   shell/                Nav (product switcher tabs), ThemeToggle, Footer, BrandLogo
   ui/                   Modal, Drawer, Toast — shared interaction primitives
@@ -73,7 +94,8 @@ components/
     procure/            ProcureDemo + views + data.ts + procure.css
     plant/              PlantDemo + views + data.ts + plant.css
     dispatch/           DispatchDemo + views + data.ts + dispatch.css
-lib/products.ts         product registry (tabs, names, taglines)
+lib/products.ts         demo registry (tabs, sectors, taglines, case-study links)
+lib/i18n.ts             locales, Text pair type, main-site URLs
 ```
 
 Each demo is a self-contained client component tree: all state lives in React

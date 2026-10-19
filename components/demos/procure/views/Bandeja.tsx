@@ -2,18 +2,20 @@
 
 import { useMemo } from "react";
 import { Spotlight } from "@/components/annotations/Spotlight";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { isAutomatable } from "../ai";
 import {
-  fmtUSD,
   QUEUE_LABELS,
   REQUESTS,
+  RISK_LABEL,
   recommendedQuote,
+  useFmt,
   type PurchaseRequest,
   type QueueId,
   type Risk,
 } from "../data";
 import { AiMark, BrandButton, QueueBadge, RiskBadge, StatusBadge } from "../bits";
-import { useProcure } from "../state";
+import { DENSITY_LABEL, useProcure } from "../state";
 
 const QUEUE_OPTIONS: (QueueId | "todas")[] = [
   "todas",
@@ -26,6 +28,7 @@ const QUEUE_OPTIONS: (QueueId | "todas")[] = [
 
 export function Bandeja() {
   const { filters, setFilters, density, setDensity } = useProcure();
+  const t = useT();
 
   const filtered = useMemo(() => {
     const q = filters.q.trim().toLowerCase();
@@ -34,7 +37,7 @@ export function Bandeja() {
       if (filters.risk !== "todos" && r.recommendation.risk !== filters.risk) return false;
       if (
         q &&
-        ![r.id, r.material.name, r.material.code, r.request.requester, r.request.area]
+        ![r.id, r.material.name.en, r.material.name.es, r.material.code, r.request.requester, r.request.area.en, r.request.area.es]
           .join(" ")
           .toLowerCase()
           .includes(q)
@@ -60,7 +63,7 @@ export function Bandeja() {
               type="search"
               value={filters.q}
               onChange={(e) => setFilters({ q: e.target.value })}
-              placeholder="Buscar material, código, solicitante…"
+              placeholder={t({ en: "Search material, code, requester…", es: "Buscar material, código, solicitante…" })}
               className="w-full rounded-xl border border-hairline bg-surface py-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-mute/70 transition-colors focus:border-[var(--pr-brand)] focus:outline-none"
             />
           </div>
@@ -68,12 +71,12 @@ export function Bandeja() {
             value={filters.queue}
             onChange={(e) => setFilters({ queue: e.target.value as QueueId | "todas" })}
             className="rounded-xl border border-hairline bg-surface px-3 py-2 text-[13px] text-ink focus:border-[var(--pr-brand)] focus:outline-none"
-            aria-label="Filtrar por cola"
+            aria-label={t({ en: "Filter by queue", es: "Filtrar por cola" })}
           >
-            <option value="todas">Cola · todas</option>
+            <option value="todas">{t({ en: "Queue · all", es: "Cola · todas" })}</option>
             {QUEUE_OPTIONS.slice(1).map((qid) => (
               <option key={qid} value={qid}>
-                {QUEUE_LABELS[qid as QueueId]}
+                {t(QUEUE_LABELS[qid as QueueId])}
               </option>
             ))}
           </select>
@@ -81,12 +84,14 @@ export function Bandeja() {
             value={filters.risk}
             onChange={(e) => setFilters({ risk: e.target.value as Risk | "todos" })}
             className="rounded-xl border border-hairline bg-surface px-3 py-2 text-[13px] text-ink focus:border-[var(--pr-brand)] focus:outline-none"
-            aria-label="Filtrar por riesgo"
+            aria-label={t({ en: "Filter by risk", es: "Filtrar por riesgo" })}
           >
-            <option value="todos">Riesgo · todos</option>
-            <option value="Bajo">Bajo</option>
-            <option value="Medio">Medio</option>
-            <option value="Alto">Alto</option>
+            <option value="todos">{t({ en: "Risk · all", es: "Riesgo · todos" })}</option>
+            {(["Bajo", "Medio", "Alto"] as const).map((k) => (
+              <option key={k} value={k}>
+                {t(RISK_LABEL[k])}
+              </option>
+            ))}
           </select>
           <div className="ml-auto flex items-center rounded-xl border border-hairline p-0.5">
             {(["detallada", "compacta"] as const).map((d) => (
@@ -94,12 +99,12 @@ export function Bandeja() {
                 key={d}
                 type="button"
                 onClick={() => setDensity(d)}
-                className={`rounded-[10px] px-3 py-1.5 text-[12px] font-medium capitalize transition-colors ${
+                className={`rounded-[10px] px-3 py-1.5 text-[12px] font-medium transition-colors ${
                   density === d ? "text-[color:var(--pr-brand-ink)]" : "text-mute hover:text-ink"
                 }`}
                 style={density === d ? { background: "var(--pr-brand)" } : undefined}
               >
-                {d}
+                {t(DENSITY_LABEL[d])}
               </button>
             ))}
           </div>
@@ -110,15 +115,17 @@ export function Bandeja() {
         {/* Cards */}
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-hairline p-14 text-center">
-            <p className="text-[14px] font-medium">Sin resultados con estos filtros</p>
-            <p className="mt-1 text-[12.5px] text-mute">Prueba limpiar la búsqueda o cambiar la cola.</p>
+            <p className="text-[14px] font-medium">{t({ en: "No results for these filters", es: "Sin resultados con estos filtros" })}</p>
+            <p className="mt-1 text-[12.5px] text-mute">
+              {t({ en: "Try clearing the search or changing the queue.", es: "Prueba limpiar la búsqueda o cambiar la cola." })}
+            </p>
             <BrandButton
               small
               variant="soft"
               className="mt-4"
               onClick={() => setFilters({ q: "", queue: "todas", risk: "todos" })}
             >
-              Limpiar filtros
+              {t({ en: "Clear filters", es: "Limpiar filtros" })}
             </BrandButton>
           </div>
         ) : (
@@ -144,6 +151,8 @@ function RequestCard({ r, compact }: { r: PurchaseRequest; compact: boolean }) {
   const { openDetail, decisions } = useProcure();
   const q = recommendedQuote(r);
   const decided = decisions[r.id];
+  const t = useT();
+  const { fmtUSD } = useFmt();
 
   return (
     <button
@@ -155,13 +164,13 @@ function RequestCard({ r, compact }: { r: PurchaseRequest; compact: boolean }) {
         <span className="font-mono text-[11px] text-mute">{r.id}</span>
         {decided ? <StatusBadge status={decided} /> : <RiskBadge risk={r.recommendation.risk} />}
       </div>
-      <h4 className="mt-2 text-[14px] font-semibold leading-snug tracking-tight">{r.material.name}</h4>
+      <h4 className="mt-2 text-[14px] font-semibold leading-snug tracking-tight">{t(r.material.name)}</h4>
       <p className="mt-1 text-[12px] text-mute">
-        {r.request.quantity} {r.material.unit} · {r.request.area} · {r.request.requester}
+        {r.request.quantity} {t(r.material.unit)} · {t(r.request.area)} · {r.request.requester}
       </p>
       {!compact && (
         <p className="mt-2 line-clamp-2 text-[12.5px] leading-relaxed text-ink/70">
-          {r.request.observation}
+          {t(r.request.observation)}
         </p>
       )}
       <div className="mt-3 flex items-center gap-2 border-t border-hairline pt-3">
@@ -169,11 +178,11 @@ function RequestCard({ r, compact }: { r: PurchaseRequest; compact: boolean }) {
         <span className="min-w-0 flex-1 truncate text-[12px] text-ink/75">
           {q ? (
             <>
-              Sugerido: <strong className="font-semibold">{r.recommendation.supplier}</strong> ·{" "}
+              {t({ en: "Suggested", es: "Sugerido" })}: <strong className="font-semibold">{r.recommendation.supplier}</strong> ·{" "}
               {fmtUSD(q.unitPrice * r.request.quantity)}
             </>
           ) : (
-            "Sin cotizaciones aún"
+            t({ en: "No quotes yet", es: "Sin cotizaciones aún" })
           )}
         </span>
         <QueueBadge queue={r.queue} />
@@ -184,6 +193,7 @@ function RequestCard({ r, compact }: { r: PurchaseRequest; compact: boolean }) {
 
 function CopilotoPanel({ filteredCount }: { filteredCount: number }) {
   const { setFilters } = useProcure();
+  const t = useT();
   const alto = REQUESTS.filter((r) => r.recommendation.risk === "Alto").length;
   const faltan = REQUESTS.filter((r) => r.quotes.length < 3).length;
   const auto = REQUESTS.filter((r) => isAutomatable(r)).length;
@@ -192,7 +202,10 @@ function CopilotoPanel({ filteredCount }: { filteredCount: number }) {
     <aside className="sticky top-36 hidden rounded-2xl border border-hairline bg-surface xl:block">
       <Spotlight
         align="right"
-        note="El copiloto resume la bandeja y sus botones controlan los filtros de la izquierda."
+        note={t({
+          en: "The copilot summarizes the inbox, and its buttons drive the filters on the left.",
+          es: "El copiloto resume la bandeja y sus botones controlan los filtros de la izquierda.",
+        })}
       />
       <div
         className="flex items-center gap-2.5 rounded-t-2xl px-4 py-3"
@@ -202,30 +215,35 @@ function CopilotoPanel({ filteredCount }: { filteredCount: number }) {
           ◈
         </span>
         <div>
-          <p className="text-[13px] font-semibold text-white">Copiloto IA</p>
-          <p className="text-[10.5px] text-white/70">Lectura de la bandeja</p>
+          <p className="text-[13px] font-semibold text-white">{t({ en: "AI copilot", es: "Copiloto IA" })}</p>
+          <p className="text-[10.5px] text-white/70">{t({ en: "Reading the inbox", es: "Lectura de la bandeja" })}</p>
         </div>
       </div>
       <div className="space-y-3 p-4">
         <p className="pr-ai-output rounded-xl p-3 text-[12.5px] leading-relaxed text-ink/85">
-          Hay <strong>{REQUESTS.length} solicitudes activas</strong>: {alto} de
-          riesgo alto, {faltan} con cotizaciones incompletas y {auto} candidatas
-          a automatización. Mostrando {filteredCount} con los filtros actuales.
+          {t({ en: "There are ", es: "Hay " })}
+          <strong>
+            {REQUESTS.length} {t({ en: "active requests", es: "solicitudes activas" })}
+          </strong>
+          {t({
+            en: `: ${alto} high-risk, ${faltan} with incomplete quotes and ${auto} automation candidates. Showing ${filteredCount} with the current filters.`,
+            es: `: ${alto} de riesgo alto, ${faltan} con cotizaciones incompletas y ${auto} candidatas a automatización. Mostrando ${filteredCount} con los filtros actuales.`,
+          })}
         </p>
         <div className="space-y-1.5">
           {[
-            { label: "Ver riesgo alto", f: { risk: "Alto" as const, queue: "todas" as const, q: "" } },
-            { label: "Ver faltantes de cotización", f: { queue: "cotizacion" as const, risk: "todos" as const, q: "" } },
-            { label: "Ver alertas de precio", f: { queue: "alerta" as const, risk: "todos" as const, q: "" } },
-            { label: "Ver automatizables", f: { queue: "repetitiva" as const, risk: "todos" as const, q: "" } },
+            { label: { en: "Show high risk", es: "Ver riesgo alto" }, f: { risk: "Alto" as const, queue: "todas" as const, q: "" } },
+            { label: { en: "Show missing quotes", es: "Ver faltantes de cotización" }, f: { queue: "cotizacion" as const, risk: "todos" as const, q: "" } },
+            { label: { en: "Show price alerts", es: "Ver alertas de precio" }, f: { queue: "alerta" as const, risk: "todos" as const, q: "" } },
+            { label: { en: "Show automatable", es: "Ver automatizables" }, f: { queue: "repetitiva" as const, risk: "todos" as const, q: "" } },
           ].map((b) => (
             <button
-              key={b.label}
+              key={b.label.en}
               type="button"
               onClick={() => setFilters(b.f)}
               className="flex w-full items-center justify-between rounded-xl border border-hairline bg-canvas px-3 py-2 text-[12.5px] font-medium transition-colors hover:border-[var(--pr-brand-border)]"
             >
-              {b.label}
+              {t(b.label)}
               <span className="text-mute">▸</span>
             </button>
           ))}
@@ -234,7 +252,7 @@ function CopilotoPanel({ filteredCount }: { filteredCount: number }) {
             onClick={() => setFilters({ q: "", queue: "todas", risk: "todos" })}
             className="w-full rounded-xl px-3 py-2 text-[12px] text-mute transition-colors hover:text-ink"
           >
-            Limpiar filtros
+            {t({ en: "Clear filters", es: "Limpiar filtros" })}
           </button>
         </div>
       </div>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- [N] mark from the [NORIA] logo, redrawn on a 64 grid with heavier
+       strokes so it still reads at 16px. -->
+  <rect width="64" height="64" rx="14" fill="#0a0a0a"/>
+  <path fill="#27e0a2" d="M8 11h12v5h-7v32h7v5H8z"/>
+  <path fill="#27e0a2" d="M56 11H44v5h7v32h-7v5h12z"/>
+  <path fill="#f2f2f0" d="M23 19h5.2l8.8 16.4V19h5v26h-5.2L28 28.6V45h-5z"/>
+</svg>
