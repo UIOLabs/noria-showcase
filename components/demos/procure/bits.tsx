@@ -2,8 +2,9 @@
 
 /* Small presentational pieces shared across Procure views. */
 
+import { useT } from "@/components/i18n/LocaleProvider";
 import type { QueueId, Risk } from "./data";
-import { QUEUE_LABELS } from "./data";
+import { QUEUE_LABELS, RISK_LABEL } from "./data";
 
 export function Panel({
   children,
@@ -47,27 +48,30 @@ const RISK_STYLE: Record<Risk, { bg: string; fg: string }> = {
 
 export function RiskBadge({ risk }: { risk: Risk }) {
   const s = RISK_STYLE[risk];
+  const t = useT();
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
       style={{ background: s.bg, color: s.fg }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.fg }} />
-      Riesgo {risk.toLowerCase()}
+      {t({ en: `${RISK_LABEL[risk].en} risk`, es: `Riesgo ${RISK_LABEL[risk].es.toLowerCase()}` })}
     </span>
   );
 }
 
 export function QueueBadge({ queue }: { queue: QueueId }) {
+  const t = useT();
   return (
     <span className="inline-flex items-center rounded-full border border-hairline px-2.5 py-0.5 text-[11px] text-mute">
-      {QUEUE_LABELS[queue]}
+      {t(QUEUE_LABELS[queue])}
     </span>
   );
 }
 
 export function StatusBadge({ status }: { status: "aprobada" | "devuelta" }) {
   const ok = status === "aprobada";
+  const t = useT();
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
@@ -76,7 +80,7 @@ export function StatusBadge({ status }: { status: "aprobada" | "devuelta" }) {
         color: ok ? "var(--ok)" : "var(--danger)",
       }}
     >
-      {ok ? "✓ Aprobada" : "↩ Devuelta"}
+      {ok ? t({ en: "✓ Approved", es: "✓ Aprobada" }) : t({ en: "↩ Returned", es: "↩ Devuelta" })}
     </span>
   );
 }

@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/components/i18n/LocaleProvider";
+import type { Text } from "@/lib/i18n";
 import { isAutomatable } from "../ai";
-import { fmtUSD, REQUESTS, SYNC_EVENTS, recommendedQuote } from "../data";
+import { REQUESTS, SYNC_EVENTS, recommendedQuote, useFmt, type Formatters } from "../data";
 import { BrandButton, Panel, PanelHead, QueueBadge, RiskBadge, StatusBadge } from "../bits";
-import { useProcure } from "../state";
+import { useProcure, type Filters } from "../state";
 
 export function Centro() {
   const { openDetail, go, setFilters, startTour, decisions, rules } = useProcure();
 
-  const kpis = buildKpis();
+  const t = useT();
+  const fmt = useFmt();
+  const { fmtUSD } = fmt;
+  const kpis = buildKpis(fmt);
   const priority = REQUESTS.slice(0, 6);
 
   return (
@@ -23,14 +28,16 @@ export function Centro() {
           <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
           <div>
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/70">
-              Centro de compras · SIGA ERP
+              {t({ en: "Purchasing hub · SIGA ERP", es: "Centro de compras · SIGA ERP" })}
             </span>
             <h2 className="mt-3 max-w-md text-2xl font-semibold leading-snug tracking-tight text-white md:text-[28px]">
-              Compras convertidas en decisiones claras.
+              {t({ en: "Purchasing, turned into clear decisions.", es: "Compras convertidas en decisiones claras." })}
             </h2>
             <p className="mt-3 max-w-md text-[13.5px] leading-relaxed text-white/80">
-              SIGA sigue siendo el sistema origen. Noria Procure sincroniza,
-              compara, recomienda y deja auditoría de cada decisión.
+              {t({
+                en: "SIGA stays the system of record. Procure syncs, compares, recommends, and leaves an audit trail behind every decision.",
+                es: "SIGA sigue siendo el sistema origen. Procure sincroniza, compara, recomienda y deja auditoría de cada decisión.",
+              })}
             </p>
           </div>
           <div className="mt-7 flex flex-wrap gap-2.5">
@@ -39,7 +46,7 @@ export function Centro() {
               onClick={startTour}
               className="rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-[#8d1b27] transition-transform active:scale-[0.98] hover:opacity-90"
             >
-              Iniciar recorrido ▸
+              {t({ en: "Start the tour ▸", es: "Iniciar recorrido ▸" })}
             </button>
             <button
               type="button"
@@ -49,7 +56,7 @@ export function Centro() {
               }}
               className="rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:border-white"
             >
-              Ver alertas de precio
+              {t({ en: "See price alerts", es: "Ver alertas de precio" })}
             </button>
           </div>
         </div>
@@ -61,7 +68,7 @@ export function Centro() {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         {kpis.map((k) => (
           <button
-            key={k.label}
+            key={k.label.en}
             type="button"
             onClick={() => {
               setFilters(k.filter);
@@ -70,12 +77,12 @@ export function Centro() {
             className="group rounded-2xl border border-hairline bg-surface p-4 text-left transition-colors hover:border-ink/30"
           >
             <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-mute">
-              {k.label}
+              {t(k.label)}
             </span>
             <span className="mt-1.5 block text-2xl font-semibold tracking-tight" style={k.accent ? { color: "var(--pr-brand)" } : undefined}>
               {k.value}
             </span>
-            <span className="mt-0.5 block text-[11.5px] text-mute">{k.sub}</span>
+            <span className="mt-0.5 block text-[11.5px] text-mute">{t(k.sub)}</span>
           </button>
         ))}
       </div>
@@ -84,11 +91,14 @@ export function Centro() {
       <div className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
         <Panel>
           <PanelHead
-            title="Prioridad de hoy"
-            sub="Los 6 casos que el copiloto sugiere resolver primero"
+            title={t({ en: "Today's priorities", es: "Prioridad de hoy" })}
+            sub={t({
+              en: "The 6 cases the copilot suggests resolving first",
+              es: "Los 6 casos que el copiloto sugiere resolver primero",
+            })}
             right={
               <BrandButton small variant="soft" onClick={() => go("bandeja")}>
-                Ver bandeja completa
+                {t({ en: "Open the full inbox", es: "Ver bandeja completa" })}
               </BrandButton>
             }
           />
@@ -105,9 +115,9 @@ export function Centro() {
                   >
                     <span className="font-mono text-[11px] text-mute">{String(i + 1).padStart(2, "0")}</span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13.5px] font-medium">{r.material.name}</span>
+                      <span className="block truncate text-[13.5px] font-medium">{t(r.material.name)}</span>
                       <span className="mt-0.5 block truncate text-[11.5px] text-mute">
-                        {r.id} · {r.scenario}
+                        {r.id} · {t(r.scenario)}
                       </span>
                     </span>
                     <span className="hidden font-mono text-[12px] tabular-nums text-mute md:block">
@@ -124,11 +134,11 @@ export function Centro() {
 
         <Panel className="flex flex-col">
           <PanelHead
-            title="Reglas inteligentes"
-            sub="Compras repetitivas que se aprueban solas"
+            title={t({ en: "Smart rules", es: "Reglas inteligentes" })}
+            sub={t({ en: "Repeat purchases that approve themselves", es: "Compras repetitivas que se aprueban solas" })}
             right={
               <BrandButton small variant="soft" onClick={() => go("automatizaciones")}>
-                Administrar
+                {t({ en: "Manage", es: "Administrar" })}
               </BrandButton>
             }
           />
@@ -141,18 +151,20 @@ export function Centro() {
                     className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
                     style={{ background: "var(--pr-ok-soft)", color: "var(--ok)" }}
                   >
-                    Activa
+                    {t({ en: "Active", es: "Activa" })}
                   </span>
                 </div>
-                <p className="mt-1.5 text-[13px] font-medium leading-snug">{rule.material}</p>
+                <p className="mt-1.5 text-[13px] font-medium leading-snug">{t(rule.material)}</p>
                 <p className="mt-1 text-[11.5px] text-mute">
-                  {rule.supplier} · {rule.tolerance} · tope {fmtUSD(rule.maxAuto)}
+                  {rule.supplier} · {t(rule.tolerance)} · {t({ en: "cap", es: "tope" })} {fmtUSD(rule.maxAuto)}
                 </p>
               </div>
             ))}
             <p className="text-[11.5px] leading-relaxed text-mute">
-              {REQUESTS.filter((r) => isAutomatable(r)).length} solicitudes de la
-              bandeja actual califican para una regla nueva.
+              {t({
+                en: `${REQUESTS.filter((r) => isAutomatable(r)).length} requests in the current inbox qualify for a new rule.`,
+                es: `${REQUESTS.filter((r) => isAutomatable(r)).length} solicitudes de la bandeja actual califican para una regla nueva.`,
+              })}
             </p>
           </div>
         </Panel>
@@ -162,6 +174,7 @@ export function Centro() {
 }
 
 function SyncConsole() {
+  const t = useT();
   const [count, setCount] = useState(4);
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -187,14 +200,14 @@ function SyncConsole() {
           style={{ background: "var(--ok)" }}
         />
         <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--pr-dark-mute)]">
-          Sincronización SIGA
+          {t({ en: "SIGA sync", es: "Sincronización SIGA" })}
         </span>
         <span className="ml-auto font-mono text-[10px] text-[var(--pr-dark-mute)]">
-          {done ? "al día" : "leyendo…"}
+          {done ? t({ en: "up to date", es: "al día" }) : t({ en: "reading…", es: "leyendo…" })}
         </span>
       </div>
       <div ref={bodyRef} className="pr-console-body h-56 flex-1 overflow-y-auto px-5 py-3 xl:h-auto">
-        {lines.map((l, i) => (
+        {lines.map(t).map((l, i) => (
           <div key={l} className={i === lines.length - 1 ? "animate-row-enter" : undefined}>
             <span style={{ color: "var(--ok)" }}>▸</span>{" "}
             <span className="text-[var(--pr-dark-mute)]">{l.slice(0, 10)}</span>
@@ -207,7 +220,7 @@ function SyncConsole() {
   );
 }
 
-function buildKpis() {
+function buildKpis({ fmtUSD }: Formatters): { label: Text; value: string; sub: Text; filter: Filters; accent: boolean }[] {
   const active = REQUESTS.length;
   const porAprobar = REQUESTS.filter((r) => r.queue === "aprobacion").length;
   const faltanCot = REQUESTS.filter((r) => r.quotes.length < 3).length;
@@ -221,38 +234,38 @@ function buildKpis() {
 
   return [
     {
-      label: "Solicitudes activas",
+      label: { en: "Active requests", es: "Solicitudes activas" },
       value: String(active),
-      sub: "sincronizadas desde SIGA",
-      filter: { queue: "todas" as const, risk: "todos" as const, q: "" },
+      sub: { en: "synced from SIGA", es: "sincronizadas desde SIGA" },
+      filter: { queue: "todas", risk: "todos", q: "" },
       accent: false,
     },
     {
-      label: "Por aprobar",
+      label: { en: "To approve", es: "Por aprobar" },
       value: String(porAprobar),
-      sub: "con expediente completo",
-      filter: { queue: "aprobacion" as const, risk: "todos" as const, q: "" },
+      sub: { en: "with a complete case file", es: "con expediente completo" },
+      filter: { queue: "aprobacion", risk: "todos", q: "" },
       accent: false,
     },
     {
-      label: "Faltan cotizaciones",
+      label: { en: "Missing quotes", es: "Faltan cotizaciones" },
       value: String(faltanCot),
-      sub: "bajo la política de 3 ofertas",
-      filter: { queue: "cotizacion" as const, risk: "todos" as const, q: "" },
+      sub: { en: "under the 3-quote policy", es: "bajo la política de 3 ofertas" },
+      filter: { queue: "cotizacion", risk: "todos", q: "" },
       accent: false,
     },
     {
-      label: "Automatizables",
+      label: { en: "Automatable", es: "Automatizables" },
       value: String(auto),
-      sub: "candidatas a regla",
-      filter: { queue: "repetitiva" as const, risk: "todos" as const, q: "" },
+      sub: { en: "rule candidates", es: "candidatas a regla" },
+      filter: { queue: "repetitiva", risk: "todos", q: "" },
       accent: false,
     },
     {
-      label: "Ahorro estimado",
+      label: { en: "Estimated savings", es: "Ahorro estimado" },
       value: fmtUSD(Math.round(ahorro)),
-      sub: "vs. peor oferta del mes",
-      filter: { queue: "todas" as const, risk: "todos" as const, q: "" },
+      sub: { en: "vs. the month's worst offer", es: "vs. peor oferta del mes" },
+      filter: { queue: "todas", risk: "todos", q: "" },
       accent: true,
     },
   ];

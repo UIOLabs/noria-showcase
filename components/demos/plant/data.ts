@@ -3,44 +3,72 @@
  * an invented flexible-packaging factory, "VETRA ERP" an invented ERP, and all
  * clients, salespeople, machines and figures are fabricated.
  * All data is static module constants so server/client renders match.
+ * Display copy is { en, es }; the Spanish strings used as keys (machine and
+ * order states, product families, materials) map to labels below.
  */
+
+import type { Locale, Text } from "@/lib/i18n";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /* ---------- formatting ---------- */
 
-const usdFmt = new Intl.NumberFormat("es-EC", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
-const numFmt = new Intl.NumberFormat("es-EC", { maximumFractionDigits: 0 });
-const pctFmt = new Intl.NumberFormat("es-EC", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
+function makeFormatters(tag: string) {
+  const usd = new Intl.NumberFormat(tag, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  const num = new Intl.NumberFormat(tag, { maximumFractionDigits: 0 });
+  const pct = new Intl.NumberFormat(tag, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return {
+    fmtUSD: (n: number) => usd.format(n),
+    fmtNum: (n: number) => num.format(n),
+    fmtPct: (n: number) => `${pct.format(n)}%`,
+    /** One decimal, no unit (percentage-point deltas). */
+    fmtDec: (n: number) => pct.format(n),
+  };
+}
 
-export const fmtUSD = (n: number) => usdFmt.format(n);
-export const fmtNum = (n: number) => numFmt.format(n);
-export const fmtPct = (n: number) => `${pctFmt.format(n)}%`;
+const FORMATTERS: Record<Locale, ReturnType<typeof makeFormatters>> = {
+  en: makeFormatters("en-US"),
+  es: makeFormatters("es-EC"),
+};
+
+/** Number formatters for the active locale ($1,234 vs $1.234). */
+export function useFmt() {
+  return FORMATTERS[useLocale()];
+}
 
 /** Fixed demo "today" so every render is deterministic. */
 export const DEMO_TODAY = new Date(2026, 5, 24); // 24 jun 2026
 
-export function dayLabel(offset: number): { dow: string; date: string; weekend: boolean } {
+// Spelled out rather than toLocaleDateString so Node (build) and the browser
+// always print the same thing.
+const DOWS: Record<Locale, string[]> = {
+  en: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+  es: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"],
+};
+const MONTHS_SHORT: Record<Locale, string[]> = {
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  es: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+};
+
+export function dayLabel(offset: number, locale: Locale): { dow: string; date: string; weekend: boolean } {
   const d = new Date(DEMO_TODAY);
   d.setDate(d.getDate() + offset);
-  const dows = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"];
   return {
-    dow: dows[d.getDay()],
-    date: `${d.getDate()}/${d.getMonth() + 1}`,
+    dow: DOWS[locale][d.getDay()],
+    date: locale === "en" ? `${d.getMonth() + 1}/${d.getDate()}` : `${d.getDate()}/${d.getMonth() + 1}`,
     weekend: d.getDay() === 0 || d.getDay() === 6,
   };
 }
 
-export function dateOffset(offset: number): string {
+/** "Jun 30" / "30 jun" for a day offset from the demo's today. */
+export function dateOffset(offset: number, locale: Locale): string {
   const d = new Date(DEMO_TODAY);
   d.setDate(d.getDate() + offset);
-  return d.toLocaleDateString("es-EC", { day: "numeric", month: "short" });
+  const month = MONTHS_SHORT[locale][d.getMonth()];
+  return locale === "en" ? `${month} ${d.getDate()}` : `${d.getDate()} ${month}`;
 }
+
+/** The demo's fixed "today" in the top bar. */
+export const TODAY_LABEL: Text = { en: "Wed, Jun 24, 2026", es: "mié, 24 jun 2026" };
 
 /* ---------- stages & machines ---------- */
 
@@ -48,20 +76,47 @@ export type Stage = "EXT" | "IMP" | "LAM" | "COR" | "SEL";
 
 export const STAGES: {
   key: Stage;
-  name: string;
+  name: Text;
   color: string;
   ink: string;
 }[] = [
-  { key: "EXT", name: "Extrusión", color: "var(--st-ext)", ink: "var(--st-ext-ink)" },
-  { key: "IMP", name: "Impresión", color: "var(--st-imp)", ink: "var(--st-imp-ink)" },
-  { key: "LAM", name: "Laminación", color: "var(--st-lam)", ink: "var(--st-lam-ink)" },
-  { key: "COR", name: "Corte", color: "var(--st-cor)", ink: "var(--st-cor-ink)" },
-  { key: "SEL", name: "Sellado", color: "var(--st-sel)", ink: "var(--st-sel-ink)" },
+  { key: "EXT", name: { en: "Extrusion", es: "Extrusión" }, color: "var(--st-ext)", ink: "var(--st-ext-ink)" },
+  { key: "IMP", name: { en: "Printing", es: "Impresión" }, color: "var(--st-imp)", ink: "var(--st-imp-ink)" },
+  { key: "LAM", name: { en: "Lamination", es: "Laminación" }, color: "var(--st-lam)", ink: "var(--st-lam-ink)" },
+  { key: "COR", name: { en: "Cutting", es: "Corte" }, color: "var(--st-cor)", ink: "var(--st-cor-ink)" },
+  { key: "SEL", name: { en: "Sealing", es: "Sellado" }, color: "var(--st-sel)", ink: "var(--st-sel-ink)" },
 ];
 
 export const stageByKey = (k: Stage) => STAGES.find((s) => s.key === k)!;
 
 export type MachineState = "Operativa" | "En cambio" | "Mantenimiento";
+
+/** Display labels for every state key (machines and orders). */
+export const STATE_LABEL: Record<string, Text> = {
+  "En producción": { en: "In production", es: "En producción" },
+  "Pendiente OP": { en: "WO pending", es: "Pendiente OP" },
+  "Por crear OP": { en: "WO not created", es: "Por crear OP" },
+  Atrasada: { en: "Late", es: "Atrasada" },
+  "En cola": { en: "Queued", es: "En cola" },
+  Cotizado: { en: "Quoted", es: "Cotizado" },
+  Operativa: { en: "Running", es: "Operativa" },
+  "En cambio": { en: "Changeover", es: "En cambio" },
+  Mantenimiento: { en: "Maintenance", es: "Mantenimiento" },
+};
+
+export const FAMILY_LABEL: Record<string, Text> = {
+  FUNDA: { en: "POUCH", es: "FUNDA" },
+  BOLSA: { en: "BAG", es: "BOLSA" },
+  BOBINA: { en: "ROLL", es: "BOBINA" },
+  LAMINADO: { en: "LAMINATE", es: "LAMINADO" },
+};
+
+export const MATERIAL_LABEL: Record<string, Text> = {
+  PEBD: { en: "LDPE", es: "PEBD" },
+  PEAD: { en: "HDPE", es: "PEAD" },
+  POLIPROPILENO: { en: "POLYPROPYLENE", es: "POLIPROPILENO" },
+  BOPP: { en: "BOPP", es: "BOPP" },
+};
 
 export type Machine = {
   code: string;
@@ -89,7 +144,16 @@ export const MACHINES: Machine[] = [
 
 /* ---------- dashboard (Panel) ---------- */
 
-export const MONTHS_12 = ["Jul", "Ago", "Sep", "Oct", "Nov", "Dic", "Ene", "Feb", "Mar", "Abr", "May", "Jun"];
+export const MONTHS_12: Record<Locale, string[]> = {
+  en: ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+  es: ["Jul", "Ago", "Sep", "Oct", "Nov", "Dic", "Ene", "Feb", "Mar", "Abr", "May", "Jun"],
+};
+
+/** Last six months, for the client drill-down. */
+export const MONTHS_6: Record<Locale, string[]> = {
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+  es: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
+};
 
 export const REVENUE_MONTHLY = [412000, 438000, 395000, 461000, 448000, 472000, 430000, 455000, 483000, 466000, 491000, 508000];
 export const MARGIN_MONTHLY = [26.1, 27.4, 25.2, 28.9, 27.8, 29.4, 26.8, 28.1, 30.2, 29.0, 30.8, 31.5];
@@ -116,7 +180,7 @@ export type Client = {
   scrapPct: number;
   ops: number;
   monthly: number[]; // últimos 6 meses
-  recent: { op: string; fecha: string; familia: string; kg: number; margen: number }[];
+  recent: { op: string; fecha: Text; familia: string; kg: number; margen: number }[];
 };
 
 export const CLIENTS: Client[] = [
@@ -125,10 +189,10 @@ export const CLIENTS: Client[] = [
     revenue: 812400, marginPct: 33.8, scrapPct: 6.9, ops: 642,
     monthly: [118000, 124000, 131000, 127000, 138000, 142000],
     recent: [
-      { op: "OP-18310", fecha: "22 jun", familia: "FUNDA", kg: 1850, margen: 34.2 },
-      { op: "OP-18244", fecha: "15 jun", familia: "LAMINADO", kg: 2400, margen: 31.7 },
-      { op: "OP-18187", fecha: "6 jun", familia: "FUNDA", kg: 1600, margen: 35.1 },
-      { op: "OP-18102", fecha: "28 may", familia: "BOLSA", kg: 980, margen: 29.4 },
+      { op: "OP-18310", fecha: { en: "Jun 22", es: "22 jun" }, familia: "FUNDA", kg: 1850, margen: 34.2 },
+      { op: "OP-18244", fecha: { en: "Jun 15", es: "15 jun" }, familia: "LAMINADO", kg: 2400, margen: 31.7 },
+      { op: "OP-18187", fecha: { en: "Jun 6", es: "6 jun" }, familia: "FUNDA", kg: 1600, margen: 35.1 },
+      { op: "OP-18102", fecha: { en: "May 28", es: "28 may" }, familia: "BOLSA", kg: 980, margen: 29.4 },
     ],
   },
   {
@@ -136,10 +200,10 @@ export const CLIENTS: Client[] = [
     revenue: 694100, marginPct: 29.2, scrapPct: 8.4, ops: 518,
     monthly: [102000, 98000, 111000, 108000, 116000, 121000],
     recent: [
-      { op: "OP-18312", fecha: "23 jun", familia: "BOLSA", kg: 2400, margen: 28.8 },
-      { op: "OP-18220", fecha: "12 jun", familia: "BOBINA", kg: 3800, margen: 27.2 },
-      { op: "OP-18155", fecha: "3 jun", familia: "BOLSA", kg: 1450, margen: 30.6 },
-      { op: "OP-18071", fecha: "24 may", familia: "FUNDA", kg: 760, margen: 24.1 },
+      { op: "OP-18312", fecha: { en: "Jun 23", es: "23 jun" }, familia: "BOLSA", kg: 2400, margen: 28.8 },
+      { op: "OP-18220", fecha: { en: "Jun 12", es: "12 jun" }, familia: "BOBINA", kg: 3800, margen: 27.2 },
+      { op: "OP-18155", fecha: { en: "Jun 3", es: "3 jun" }, familia: "BOLSA", kg: 1450, margen: 30.6 },
+      { op: "OP-18071", fecha: { en: "May 24", es: "24 may" }, familia: "FUNDA", kg: 760, margen: 24.1 },
     ],
   },
   {
@@ -147,10 +211,10 @@ export const CLIENTS: Client[] = [
     revenue: 561800, marginPct: 24.6, scrapPct: 11.2, ops: 447,
     monthly: [88000, 92000, 84000, 96000, 91000, 99000],
     recent: [
-      { op: "OP-18319", fecha: "23 jun", familia: "FUNDA", kg: 1200, margen: 22.4 },
-      { op: "OP-18201", fecha: "10 jun", familia: "LAMINADO", kg: 2900, margen: 25.8 },
-      { op: "OP-18134", fecha: "1 jun", familia: "FUNDA", kg: 1750, margen: 23.9 },
-      { op: "OP-18043", fecha: "21 may", familia: "BOBINA", kg: 4100, margen: 26.3 },
+      { op: "OP-18319", fecha: { en: "Jun 23", es: "23 jun" }, familia: "FUNDA", kg: 1200, margen: 22.4 },
+      { op: "OP-18201", fecha: { en: "Jun 10", es: "10 jun" }, familia: "LAMINADO", kg: 2900, margen: 25.8 },
+      { op: "OP-18134", fecha: { en: "Jun 1", es: "1 jun" }, familia: "FUNDA", kg: 1750, margen: 23.9 },
+      { op: "OP-18043", fecha: { en: "May 21", es: "21 may" }, familia: "BOBINA", kg: 4100, margen: 26.3 },
     ],
   },
   {
@@ -158,10 +222,10 @@ export const CLIENTS: Client[] = [
     revenue: 488900, marginPct: 31.4, scrapPct: 7.6, ops: 396,
     monthly: [74000, 79000, 82000, 78000, 86000, 89000],
     recent: [
-      { op: "OP-18318", fecha: "22 jun", familia: "BOBINA", kg: 3100, margen: 32.0 },
-      { op: "OP-18232", fecha: "13 jun", familia: "FUNDA", kg: 1400, margen: 30.8 },
-      { op: "OP-18166", fecha: "4 jun", familia: "LAMINADO", kg: 2050, margen: 33.5 },
-      { op: "OP-18089", fecha: "26 may", familia: "FUNDA", kg: 890, margen: 28.7 },
+      { op: "OP-18318", fecha: { en: "Jun 22", es: "22 jun" }, familia: "BOBINA", kg: 3100, margen: 32.0 },
+      { op: "OP-18232", fecha: { en: "Jun 13", es: "13 jun" }, familia: "FUNDA", kg: 1400, margen: 30.8 },
+      { op: "OP-18166", fecha: { en: "Jun 4", es: "4 jun" }, familia: "LAMINADO", kg: 2050, margen: 33.5 },
+      { op: "OP-18089", fecha: { en: "May 26", es: "26 may" }, familia: "FUNDA", kg: 890, margen: 28.7 },
     ],
   },
   {
@@ -169,10 +233,10 @@ export const CLIENTS: Client[] = [
     revenue: 402300, marginPct: 35.1, scrapPct: 6.2, ops: 312,
     monthly: [61000, 64000, 69000, 66000, 72000, 70000],
     recent: [
-      { op: "OP-18324", fecha: "23 jun", familia: "LAMINADO", kg: 2750, margen: 36.4 },
-      { op: "OP-18248", fecha: "16 jun", familia: "LAMINADO", kg: 1900, margen: 34.9 },
-      { op: "OP-18172", fecha: "5 jun", familia: "BOLSA", kg: 620, margen: 33.2 },
-      { op: "COT-2214", fecha: "20 jun", familia: "LAMINADO", kg: 2200, margen: 35.5 },
+      { op: "OP-18324", fecha: { en: "Jun 23", es: "23 jun" }, familia: "LAMINADO", kg: 2750, margen: 36.4 },
+      { op: "OP-18248", fecha: { en: "Jun 16", es: "16 jun" }, familia: "LAMINADO", kg: 1900, margen: 34.9 },
+      { op: "OP-18172", fecha: { en: "Jun 5", es: "5 jun" }, familia: "BOLSA", kg: 620, margen: 33.2 },
+      { op: "COT-2214", fecha: { en: "Jun 20", es: "20 jun" }, familia: "LAMINADO", kg: 2200, margen: 35.5 },
     ],
   },
   {
@@ -180,10 +244,10 @@ export const CLIENTS: Client[] = [
     revenue: 377600, marginPct: 22.1, scrapPct: 13.8, ops: 358,
     monthly: [58000, 62000, 55000, 66000, 63000, 68000],
     recent: [
-      { op: "OP-18330", fecha: "24 jun", familia: "BOBINA", kg: 4200, margen: 21.6 },
-      { op: "OP-18261", fecha: "17 jun", familia: "BOBINA", kg: 3600, margen: 20.4 },
-      { op: "OP-18190", fecha: "8 jun", familia: "FUNDA", kg: 1150, margen: 24.8 },
-      { op: "OP-18104", fecha: "29 may", familia: "BOLSA", kg: 840, margen: 19.2 },
+      { op: "OP-18330", fecha: { en: "Jun 24", es: "24 jun" }, familia: "BOBINA", kg: 4200, margen: 21.6 },
+      { op: "OP-18261", fecha: { en: "Jun 17", es: "17 jun" }, familia: "BOBINA", kg: 3600, margen: 20.4 },
+      { op: "OP-18190", fecha: { en: "Jun 8", es: "8 jun" }, familia: "FUNDA", kg: 1150, margen: 24.8 },
+      { op: "OP-18104", fecha: { en: "May 29", es: "29 may" }, familia: "BOLSA", kg: 840, margen: 19.2 },
     ],
   },
   {
@@ -191,10 +255,10 @@ export const CLIENTS: Client[] = [
     revenue: 341200, marginPct: 30.6, scrapPct: 9.1, ops: 287,
     monthly: [51000, 54000, 58000, 55000, 61000, 62000],
     recent: [
-      { op: "OP-18336", fecha: "24 jun", familia: "FUNDA", kg: 950, margen: 31.2 },
-      { op: "OP-18269", fecha: "18 jun", familia: "FUNDA", kg: 1200, margen: 29.8 },
-      { op: "OP-18198", fecha: "9 jun", familia: "LAMINADO", kg: 1850, margen: 32.4 },
-      { op: "OP-18110", fecha: "30 may", familia: "BOLSA", kg: 540, margen: 27.6 },
+      { op: "OP-18336", fecha: { en: "Jun 24", es: "24 jun" }, familia: "FUNDA", kg: 950, margen: 31.2 },
+      { op: "OP-18269", fecha: { en: "Jun 18", es: "18 jun" }, familia: "FUNDA", kg: 1200, margen: 29.8 },
+      { op: "OP-18198", fecha: { en: "Jun 9", es: "9 jun" }, familia: "LAMINADO", kg: 1850, margen: 32.4 },
+      { op: "OP-18110", fecha: { en: "May 30", es: "30 may" }, familia: "BOLSA", kg: 540, margen: 27.6 },
     ],
   },
   {
@@ -202,10 +266,10 @@ export const CLIENTS: Client[] = [
     revenue: 298700, marginPct: 18.9, scrapPct: 15.4, ops: 341,
     monthly: [47000, 44000, 51000, 48000, 53000, 55000],
     recent: [
-      { op: "OP-18341", fecha: "24 jun", familia: "BOLSA", kg: 1600, margen: 17.8 },
-      { op: "OP-18275", fecha: "19 jun", familia: "BOLSA", kg: 2100, margen: 16.9 },
-      { op: "OP-18205", fecha: "11 jun", familia: "FUNDA", kg: 720, margen: 21.3 },
-      { op: "OP-18118", fecha: "31 may", familia: "BOBINA", kg: 3300, margen: 20.1 },
+      { op: "OP-18341", fecha: { en: "Jun 24", es: "24 jun" }, familia: "BOLSA", kg: 1600, margen: 17.8 },
+      { op: "OP-18275", fecha: { en: "Jun 19", es: "19 jun" }, familia: "BOLSA", kg: 2100, margen: 16.9 },
+      { op: "OP-18205", fecha: { en: "Jun 11", es: "11 jun" }, familia: "FUNDA", kg: 720, margen: 21.3 },
+      { op: "OP-18118", fecha: { en: "May 31", es: "31 may" }, familia: "BOBINA", kg: 3300, margen: 20.1 },
     ],
   },
 ];
@@ -253,9 +317,11 @@ export type LiveOrderState = "En producción" | "Pendiente OP" | "Atrasada" | "E
 
 export type LiveOrder = {
   op: string;
-  entrega: string;
+  /** delivery, as a day offset from today */
+  entregaDay: number;
   cliente: string;
-  etapa: string;
+  /** current stage; null until the WO is released */
+  etapa: Stage | null;
   maquina: string;
   kgPedido: number;
   kgProducido: number;
@@ -270,52 +336,52 @@ export type LiveOrder = {
 
 export const LIVE_ORDERS: LiveOrder[] = [
   {
-    op: "OP-18310", entrega: dateOffset(7), cliente: "Alimentos Páramo", etapa: "Impresión", maquina: "IM-01",
+    op: "OP-18310", entregaDay: 7, cliente: "Alimentos Páramo", etapa: "IMP", maquina: "IM-01",
     kgPedido: 1850, kgProducido: 1130, mermaPct: 5.8, estado: "En producción", familia: "FUNDA", material: "PEBD", margenPct: 34.2,
     avance: [{ stage: "EXT", pct: 1 }, { stage: "IMP", pct: 0.55 }, { stage: "LAM", pct: 0 }, { stage: "COR", pct: 0 }],
   },
   {
-    op: "OP-18312", entrega: dateOffset(8), cliente: "Frutandes S.A.", etapa: "Extrusión", maquina: "EX-02",
+    op: "OP-18312", entregaDay: 8, cliente: "Frutandes S.A.", etapa: "EXT", maquina: "EX-02",
     kgPedido: 2400, kgProducido: 1680, mermaPct: 7.1, estado: "En producción", familia: "BOLSA", material: "PEAD", margenPct: 28.8,
     avance: [{ stage: "EXT", pct: 0.7 }, { stage: "IMP", pct: 0 }, { stage: "LAM", pct: 0 }, { stage: "COR", pct: 0 }],
   },
   {
-    op: "OP-18318", entrega: dateOffset(6), cliente: "Lácteos Cumbre", etapa: "Extrusión", maquina: "EX-03",
+    op: "OP-18318", entregaDay: 6, cliente: "Lácteos Cumbre", etapa: "EXT", maquina: "EX-03",
     kgPedido: 3100, kgProducido: 940, mermaPct: 6.4, estado: "En producción", familia: "BOBINA", material: "PEBD", margenPct: 32.0,
     avance: [{ stage: "EXT", pct: 0.3 }, { stage: "COR", pct: 0 }, { stage: "SEL", pct: 0 }],
   },
   {
-    op: "OP-18319", entrega: dateOffset(5), cliente: "Pesquera del Golfo", etapa: "Impresión", maquina: "IM-02",
+    op: "OP-18319", entregaDay: 5, cliente: "Pesquera del Golfo", etapa: "IMP", maquina: "IM-02",
     kgPedido: 1200, kgProducido: 610, mermaPct: 12.6, estado: "Atrasada", familia: "FUNDA", material: "POLIPROPILENO", margenPct: 22.4,
     avance: [{ stage: "EXT", pct: 1 }, { stage: "IMP", pct: 0.5 }, { stage: "SEL", pct: 0 }],
   },
   {
-    op: "OP-18324", entrega: dateOffset(10), cliente: "Café Altiplano", etapa: "Laminación", maquina: "LA-01",
+    op: "OP-18324", entregaDay: 10, cliente: "Café Altiplano", etapa: "LAM", maquina: "LA-01",
     kgPedido: 2750, kgProducido: 2010, mermaPct: 4.9, estado: "En producción", familia: "LAMINADO", material: "BOPP", margenPct: 36.4,
     avance: [{ stage: "EXT", pct: 1 }, { stage: "IMP", pct: 1 }, { stage: "LAM", pct: 0.4 }, { stage: "COR", pct: 0 }],
   },
   {
-    op: "OP-18330", entrega: dateOffset(9), cliente: "Molinos del Sur", etapa: "Pendiente", maquina: "—",
+    op: "OP-18330", entregaDay: 9, cliente: "Molinos del Sur", etapa: null, maquina: "—",
     kgPedido: 4200, kgProducido: 0, mermaPct: 0, estado: "Pendiente OP", familia: "BOBINA", material: "PEBD", margenPct: 21.6,
     avance: [{ stage: "EXT", pct: 0 }, { stage: "IMP", pct: 0 }, { stage: "LAM", pct: 0 }],
   },
   {
-    op: "OP-18336", entrega: dateOffset(11), cliente: "Snacks Kantu", etapa: "Pendiente", maquina: "—",
+    op: "OP-18336", entregaDay: 11, cliente: "Snacks Kantu", etapa: null, maquina: "—",
     kgPedido: 950, kgProducido: 0, mermaPct: 0, estado: "Pendiente OP", familia: "FUNDA", material: "BOPP", margenPct: 31.2,
     avance: [{ stage: "EXT", pct: 0 }, { stage: "IMP", pct: 0 }, { stage: "COR", pct: 0 }],
   },
   {
-    op: "OP-18341", entrega: dateOffset(4), cliente: "AgroVerde Cía. Ltda.", etapa: "Sellado", maquina: "SE-01",
+    op: "OP-18341", entregaDay: 4, cliente: "AgroVerde Cía. Ltda.", etapa: "SEL", maquina: "SE-01",
     kgPedido: 1600, kgProducido: 1490, mermaPct: 9.3, estado: "En producción", familia: "BOLSA", material: "PEAD", margenPct: 17.8,
     avance: [{ stage: "COR", pct: 1 }, { stage: "SEL", pct: 0.8 }],
   },
   {
-    op: "OP-18344", entrega: dateOffset(9), cliente: "Lácteos Cumbre", etapa: "Pendiente", maquina: "—",
+    op: "OP-18344", entregaDay: 9, cliente: "Lácteos Cumbre", etapa: null, maquina: "—",
     kgPedido: 2050, kgProducido: 0, mermaPct: 0, estado: "En cola", familia: "FUNDA", material: "PEBD", margenPct: 33.5,
     avance: [{ stage: "EXT", pct: 0 }, { stage: "LAM", pct: 0 }, { stage: "SEL", pct: 0 }],
   },
   {
-    op: "OP-18305", entrega: dateOffset(2), cliente: "Frutandes S.A.", etapa: "Corte", maquina: "CO-02",
+    op: "OP-18305", entregaDay: 2, cliente: "Frutandes S.A.", etapa: "COR", maquina: "CO-02",
     kgPedido: 1450, kgProducido: 1398, mermaPct: 8.2, estado: "Atrasada", familia: "BOLSA", material: "PEAD", margenPct: 26.1,
     avance: [{ stage: "EXT", pct: 1 }, { stage: "IMP", pct: 1 }, { stage: "COR", pct: 0.9 }],
   },
@@ -330,7 +396,7 @@ export type Segment = { stage: Stage; machine: string; start: number; dur: numbe
 export type PlanOrder = {
   id: string;
   cliente: string;
-  producto: string;
+  producto: Text;
   kg: number;
   entregaDay: number;
   estado: "En producción" | "Por crear OP" | "Cotizado";
@@ -343,7 +409,7 @@ export type PlanOrder = {
 
 export const PLAN_ORDERS: PlanOrder[] = [
   {
-    id: "OP-18310", cliente: "Alimentos Páramo", producto: "Funda laminada 30×45", kg: 1850, entregaDay: 7,
+    id: "OP-18310", cliente: "Alimentos Páramo", producto: { en: "Laminated pouch 30×45", es: "Funda laminada 30×45" }, kg: 1850, entregaDay: 7,
     estado: "En producción", ruta: ["EXT", "IMP", "LAM", "COR"],
     segments: [
       { stage: "EXT", machine: "EX-01", start: 0, dur: 2 },
@@ -354,7 +420,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     plannedSegments: [],
   },
   {
-    id: "OP-18312", cliente: "Frutandes S.A.", producto: "Bolsa impresa 25×35", kg: 2400, entregaDay: 8,
+    id: "OP-18312", cliente: "Frutandes S.A.", producto: { en: "Printed bag 25×35", es: "Bolsa impresa 25×35" }, kg: 2400, entregaDay: 8,
     estado: "En producción", ruta: ["EXT", "IMP", "LAM", "COR"],
     segments: [
       { stage: "EXT", machine: "EX-02", start: 0, dur: 3 },
@@ -365,7 +431,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     plannedSegments: [],
   },
   {
-    id: "OP-18318", cliente: "Lácteos Cumbre", producto: "Bobina PEBD 60cm", kg: 3100, entregaDay: 6,
+    id: "OP-18318", cliente: "Lácteos Cumbre", producto: { en: "LDPE roll 60 cm", es: "Bobina PEBD 60cm" }, kg: 3100, entregaDay: 6,
     estado: "En producción", ruta: ["EXT", "COR", "SEL"],
     segments: [
       { stage: "EXT", machine: "EX-03", start: 1, dur: 3 },
@@ -375,7 +441,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     plannedSegments: [],
   },
   {
-    id: "OP-18319", cliente: "Pesquera del Golfo", producto: "Funda sellada 40×60", kg: 1200, entregaDay: 5,
+    id: "OP-18319", cliente: "Pesquera del Golfo", producto: { en: "Sealed pouch 40×60", es: "Funda sellada 40×60" }, kg: 1200, entregaDay: 5,
     estado: "En producción", ruta: ["EXT", "IMP", "SEL"],
     segments: [
       { stage: "EXT", machine: "EX-03", start: 0, dur: 1 },
@@ -385,7 +451,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     plannedSegments: [],
   },
   {
-    id: "OP-18324", cliente: "Café Altiplano", producto: "Laminado BOPP metalizado", kg: 2750, entregaDay: 10,
+    id: "OP-18324", cliente: "Café Altiplano", producto: { en: "Metallized BOPP laminate", es: "Laminado BOPP metalizado" }, kg: 2750, entregaDay: 10,
     estado: "Por crear OP", ruta: ["EXT", "IMP", "LAM", "COR"],
     segments: [
       { stage: "EXT", machine: "EX-01", start: 2, dur: 2 },
@@ -396,7 +462,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     plannedSegments: [],
   },
   {
-    id: "OP-18330", cliente: "Molinos del Sur", producto: "Bobina impresa 80cm", kg: 4200, entregaDay: 9,
+    id: "OP-18330", cliente: "Molinos del Sur", producto: { en: "Printed roll 80 cm", es: "Bobina impresa 80cm" }, kg: 4200, entregaDay: 9,
     estado: "Por crear OP", ruta: ["EXT", "IMP", "LAM"],
     segments: [
       { stage: "EXT", machine: "EX-02", start: 3, dur: 3 },
@@ -406,7 +472,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     plannedSegments: [],
   },
   {
-    id: "OP-18336", cliente: "Snacks Kantu", producto: "Funda troquelada 20×30", kg: 950, entregaDay: 11,
+    id: "OP-18336", cliente: "Snacks Kantu", producto: { en: "Die-cut pouch 20×30", es: "Funda troquelada 20×30" }, kg: 950, entregaDay: 11,
     estado: "Por crear OP", ruta: ["EXT", "IMP", "COR"],
     segments: [
       { stage: "EXT", machine: "EX-01", start: 5, dur: 2 },
@@ -416,7 +482,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     plannedSegments: [],
   },
   {
-    id: "OP-18341", cliente: "AgroVerde Cía. Ltda.", producto: "Bolsa PEAD industrial", kg: 1600, entregaDay: 4,
+    id: "OP-18341", cliente: "AgroVerde Cía. Ltda.", producto: { en: "Industrial HDPE bag", es: "Bolsa PEAD industrial" }, kg: 1600, entregaDay: 4,
     estado: "En producción", ruta: ["COR", "SEL"],
     segments: [
       { stage: "COR", machine: "CO-02", start: 0, dur: 2 },
@@ -425,7 +491,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     plannedSegments: [],
   },
   {
-    id: "OP-18344", cliente: "Lácteos Cumbre", producto: "Funda laminada 35×50", kg: 2050, entregaDay: 9,
+    id: "OP-18344", cliente: "Lácteos Cumbre", producto: { en: "Laminated pouch 35×50", es: "Funda laminada 35×50" }, kg: 2050, entregaDay: 9,
     estado: "Por crear OP", ruta: ["EXT", "LAM", "SEL"],
     segments: [
       { stage: "EXT", machine: "EX-03", start: 4, dur: 2 },
@@ -436,7 +502,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
   },
   /* ---- sin plan hasta "Planificar todo" ---- */
   {
-    id: "OP-18347", cliente: "Alimentos Páramo", producto: "Funda impresa 28×40", kg: 1300, entregaDay: 12,
+    id: "OP-18347", cliente: "Alimentos Páramo", producto: { en: "Printed pouch 28×40", es: "Funda impresa 28×40" }, kg: 1300, entregaDay: 12,
     estado: "Por crear OP", ruta: ["EXT", "IMP", "COR"],
     segments: [],
     plannedSegments: [
@@ -446,7 +512,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     ],
   },
   {
-    id: "OP-18350", cliente: "Frutandes S.A.", producto: "Bobina laminada 70cm", kg: 3600, entregaDay: 13,
+    id: "OP-18350", cliente: "Frutandes S.A.", producto: { en: "Laminated roll 70 cm", es: "Bobina laminada 70cm" }, kg: 3600, entregaDay: 13,
     estado: "Por crear OP", ruta: ["EXT", "IMP", "LAM"],
     segments: [],
     plannedSegments: [
@@ -456,7 +522,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     ],
   },
   {
-    id: "OP-18352", cliente: "Pesquera del Golfo", producto: "Funda congelados 45×65", kg: 1750, entregaDay: 12,
+    id: "OP-18352", cliente: "Pesquera del Golfo", producto: { en: "Frozen-food pouch 45×65", es: "Funda congelados 45×65" }, kg: 1750, entregaDay: 12,
     estado: "Por crear OP", ruta: ["EXT", "IMP"],
     segments: [],
     plannedSegments: [
@@ -465,7 +531,7 @@ export const PLAN_ORDERS: PlanOrder[] = [
     ],
   },
   {
-    id: "COT-2214", cliente: "Café Altiplano", producto: "Laminado BOPP mate", kg: 2200, entregaDay: 13,
+    id: "COT-2214", cliente: "Café Altiplano", producto: { en: "Matte BOPP laminate", es: "Laminado BOPP mate" }, kg: 2200, entregaDay: 13,
     estado: "Cotizado", ruta: ["EXT", "LAM", "SEL"],
     segments: [],
     plannedSegments: [
@@ -490,17 +556,17 @@ export const BACKTEST = {
   monthlyAlgo: [83, 85, 84, 87, 88, 86, 89, 88, 90, 91, 90, 92],
   monthlyCeiling: [90, 91, 90, 92, 93, 92, 94, 93, 95, 95, 94, 96],
   outcomes: [
-    { label: "A tiempo en ambos", value: 3410, colorVar: "var(--st-ext)" },
-    { label: "Salvadas por el algoritmo", value: 986, colorVar: "var(--st-cor)" },
-    { label: "Tarde en ambos", value: 748, colorVar: "var(--danger)" },
-    { label: "Sin margen de mejora", value: 342, colorVar: "var(--mute)" },
+    { label: { en: "On time in both", es: "A tiempo en ambos" } as Text, value: 3410, colorVar: "var(--st-ext)" },
+    { label: { en: "Saved by the algorithm", es: "Salvadas por el algoritmo" } as Text, value: 986, colorVar: "var(--st-cor)" },
+    { label: { en: "Late in both", es: "Tarde en ambos" } as Text, value: 748, colorVar: "var(--danger)" },
+    { label: { en: "No room to improve", es: "Sin margen de mejora" } as Text, value: 342, colorVar: "var(--mute)" },
   ],
   topSaved: [
-    { op: "OP-17204", cliente: "Alimentos Páramo", producto: "Funda laminada 30×45", kg: 2100, ruta: "EXT → IMP → LAM", entrega: "14 abr", realLate: 6, algoLate: 0, saved: 6 },
-    { op: "OP-17311", cliente: "Molinos del Sur", producto: "Bobina impresa 80cm", kg: 3900, ruta: "EXT → IMP", entrega: "29 abr", realLate: 5, algoLate: 0, saved: 5 },
-    { op: "OP-17186", cliente: "Pesquera del Golfo", producto: "Funda congelados 45×65", kg: 1680, ruta: "EXT → IMP → SEL", entrega: "8 abr", realLate: 5, algoLate: 1, saved: 4 },
-    { op: "OP-17402", cliente: "Frutandes S.A.", producto: "Bolsa impresa 25×35", kg: 1240, ruta: "EXT → IMP → COR", entrega: "12 may", realLate: 4, algoLate: 0, saved: 4 },
-    { op: "OP-17458", cliente: "Lácteos Cumbre", producto: "Bobina PEBD 60cm", kg: 2860, ruta: "EXT → COR → SEL", entrega: "20 may", realLate: 4, algoLate: 1, saved: 3 },
-    { op: "OP-17529", cliente: "Snacks Kantu", producto: "Funda troquelada 20×30", kg: 720, ruta: "EXT → IMP → COR", entrega: "2 jun", realLate: 3, algoLate: 0, saved: 3 },
+    { op: "OP-17204", cliente: "Alimentos Páramo", producto: { en: "Laminated pouch 30×45", es: "Funda laminada 30×45" }, kg: 2100, ruta: "EXT → IMP → LAM", entrega: { en: "Apr 14", es: "14 abr" }, realLate: 6, algoLate: 0, saved: 6 },
+    { op: "OP-17311", cliente: "Molinos del Sur", producto: { en: "Printed roll 80 cm", es: "Bobina impresa 80cm" }, kg: 3900, ruta: "EXT → IMP", entrega: { en: "Apr 29", es: "29 abr" }, realLate: 5, algoLate: 0, saved: 5 },
+    { op: "OP-17186", cliente: "Pesquera del Golfo", producto: { en: "Frozen-food pouch 45×65", es: "Funda congelados 45×65" }, kg: 1680, ruta: "EXT → IMP → SEL", entrega: { en: "Apr 8", es: "8 abr" }, realLate: 5, algoLate: 1, saved: 4 },
+    { op: "OP-17402", cliente: "Frutandes S.A.", producto: { en: "Printed bag 25×35", es: "Bolsa impresa 25×35" }, kg: 1240, ruta: "EXT → IMP → COR", entrega: { en: "May 12", es: "12 may" }, realLate: 4, algoLate: 0, saved: 4 },
+    { op: "OP-17458", cliente: "Lácteos Cumbre", producto: { en: "LDPE roll 60 cm", es: "Bobina PEBD 60cm" }, kg: 2860, ruta: "EXT → COR → SEL", entrega: { en: "May 20", es: "20 may" }, realLate: 4, algoLate: 1, saved: 3 },
+    { op: "OP-17529", cliente: "Snacks Kantu", producto: { en: "Die-cut pouch 20×30", es: "Funda troquelada 20×30" }, kg: 720, ruta: "EXT → IMP → COR", entrega: { en: "Jun 2", es: "2 jun" }, realLate: 3, algoLate: 0, saved: 3 },
   ],
 };

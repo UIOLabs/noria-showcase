@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Drawer } from "@/components/ui/Drawer";
 import { Spotlight } from "@/components/annotations/Spotlight";
+import { useT } from "@/components/i18n/LocaleProvider";
 import {
   ATTEMPTS,
   mmss,
@@ -16,15 +17,19 @@ import { KV, PageHead, StatusChip } from "../components/bits";
 export function Attempts() {
   const [filter, setFilter] = useState<Outcome | "all">("all");
   const [selected, setSelected] = useState<Attempt | null>(null);
+  const t = useT();
 
   const rows = filter === "all" ? ATTEMPTS : ATTEMPTS.filter((a) => a.outcome === filter);
 
   return (
     <div>
       <PageHead
-        eyebrow="Registro"
-        title="Intentos"
-        desc="Cada marcación, clasificada. Abre una fila para ver el resumen de IA, la transcripción y los campos extraídos."
+        eyebrow={t({ en: "Log", es: "Registro" })}
+        title={t({ en: "Attempts", es: "Intentos" })}
+        desc={t({
+          en: "Every dial, classified. Open a row for the AI summary, the transcript and the extracted fields.",
+          es: "Cada marcación, clasificada. Abre una fila para ver el resumen de IA, la transcripción y los campos extraídos.",
+        })}
       />
 
       {/* Filter pills */}
@@ -43,7 +48,7 @@ export function Attempts() {
                   : "border-hairline text-mute hover:border-ink/40 hover:text-ink"
               }`}
             >
-              {o === "all" ? "todos" : OUTCOME_META[o].label} · {count}
+              {o === "all" ? t({ en: "all", es: "todos" }) : t(OUTCOME_META[o].label)} · {count}
             </button>
           );
         })}
@@ -51,17 +56,20 @@ export function Attempts() {
 
       <div className="relative overflow-x-auto rounded-2xl border border-hairline">
         <Spotlight
-          note="Después de cada llamada, la IA redacta un resumen, evalúa el sentimiento y extrae siete campos estructurados. Abre una fila conectada."
+          note={t({
+            en: "After every call the AI writes a summary, scores sentiment and extracts seven structured fields. Open a connected row.",
+            es: "Después de cada llamada, la IA redacta un resumen, evalúa el sentimiento y extrae siete campos estructurados. Abre una fila conectada.",
+          })}
           align="right"
         />
         <table>
           <thead>
             <tr>
-              <th className="pt-3">Número</th>
-              <th className="pt-3">Deudor</th>
-              <th className="pt-3">Resultado</th>
-              <th className="pt-3 text-right">Duración</th>
-              <th className="pt-3">Realizada</th>
+              <th className="pt-3">{t({ en: "Number", es: "Número" })}</th>
+              <th className="pt-3">{t({ en: "Debtor", es: "Deudor" })}</th>
+              <th className="pt-3">{t({ en: "Outcome", es: "Resultado" })}</th>
+              <th className="pt-3 text-right">{t({ en: "Duration", es: "Duración" })}</th>
+              <th className="pt-3">{t({ en: "Placed", es: "Realizada" })}</th>
             </tr>
           </thead>
           <tbody>
@@ -70,16 +78,16 @@ export function Attempts() {
                 <td className="font-mono text-[12px]">{a.phone}</td>
                 <td className="font-medium">{a.debtor}</td>
                 <td>
-                  <StatusChip tone={OUTCOME_META[a.outcome].tone} label={OUTCOME_META[a.outcome].label} />
+                  <StatusChip tone={OUTCOME_META[a.outcome].tone} label={t(OUTCOME_META[a.outcome].label)} />
                 </td>
                 <td className="text-right font-mono text-[12px] tabular-nums">{mmss(a.durationSec)}</td>
-                <td className="font-mono text-[12px] text-mute">{a.placed}</td>
+                <td className="font-mono text-[12px] text-mute">{t(a.placed)}</td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="py-10 text-center text-mute">
-                  Hoy no hay intentos con este resultado.
+                  {t({ en: "No attempts with this outcome today.", es: "Hoy no hay intentos con este resultado." })}
                 </td>
               </tr>
             )}
@@ -93,8 +101,9 @@ export function Attempts() {
 }
 
 function AttemptDrawer({ attempt, onClose }: { attempt: Attempt | null; onClose: () => void }) {
+  const t = useT();
   return (
-    <Drawer open={attempt !== null} onClose={onClose} width={480} label="Detalle del intento">
+    <Drawer open={attempt !== null} onClose={onClose} width={480} label={t({ en: "Attempt detail", es: "Detalle del intento" })}>
       {attempt && <DrawerBody attempt={attempt} onClose={onClose} />}
     </Drawer>
   );
@@ -102,6 +111,7 @@ function AttemptDrawer({ attempt, onClose }: { attempt: Attempt | null; onClose:
 
 function DrawerBody({ attempt, onClose }: { attempt: Attempt; onClose: () => void }) {
   const meta = OUTCOME_META[attempt.outcome];
+  const t = useT();
 
   return (
     <div className="demo-dispatch flex flex-col gap-6 p-6">
@@ -114,7 +124,7 @@ function DrawerBody({ attempt, onClose }: { attempt: Attempt; onClose: () => voi
         <button
           type="button"
           onClick={onClose}
-          aria-label="Cerrar"
+          aria-label={t({ en: "Close", es: "Cerrar" })}
           className="rounded-full p-1.5 text-mute transition-colors hover:text-ink"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -124,25 +134,31 @@ function DrawerBody({ attempt, onClose }: { attempt: Attempt; onClose: () => voi
       </div>
 
       <div className="grid grid-cols-2 gap-x-6">
-        <KV k="Resultado" v={<StatusChip tone={meta.tone} label={meta.label} />} />
-        <KV k="Duración" v={mmss(attempt.durationSec)} />
-        <KV k="Realizada" v={attempt.placed} />
-        <KV k="Institución" v={attempt.institution} />
+        <KV k={t({ en: "Outcome", es: "Resultado" })} v={<StatusChip tone={meta.tone} label={t(meta.label)} />} />
+        <KV k={t({ en: "Duration", es: "Duración" })} v={mmss(attempt.durationSec)} />
+        <KV k={t({ en: "Placed", es: "Realizada" })} v={t(attempt.placed)} />
+        <KV k={t({ en: "Institution", es: "Institución" })} v={attempt.institution} />
       </div>
 
       {attempt.summary && (
         <section>
           <div className="mb-2 flex items-center justify-between">
-            <span className="tag !text-[10px]">Resumen de la llamada por IA</span>
+            <span className="tag !text-[10px]">{t({ en: "AI call summary", es: "Resumen de la llamada por IA" })}</span>
             {attempt.sentiment && (
               <StatusChip
                 tone={attempt.sentiment === "positive" ? "ok" : attempt.sentiment === "negative" ? "danger" : "mute"}
-                label={{ positive: "positivo", neutral: "neutral", negative: "negativo" }[attempt.sentiment]}
+                label={t(
+                  {
+                    positive: { en: "positive", es: "positivo" },
+                    neutral: { en: "neutral", es: "neutral" },
+                    negative: { en: "negative", es: "negativo" },
+                  }[attempt.sentiment]
+                )}
               />
             )}
           </div>
           <p className="rounded-xl border border-hairline bg-surface p-4 text-[13px] leading-relaxed text-ink/85">
-            {attempt.summary}
+            {t(attempt.summary)}
           </p>
         </section>
       )}
@@ -151,7 +167,9 @@ function DrawerBody({ attempt, onClose }: { attempt: Attempt; onClose: () => voi
         <>
           <FakePlayer duration={attempt.durationSec} />
           <section>
-            <span className="tag mb-2 block !text-[10px]">Transcripción</span>
+            <span className="tag mb-2 block !text-[10px]">
+              {t({ en: "Transcript · in Spanish, as spoken", es: "Transcripción" })}
+            </span>
             <pre className="max-h-72 overflow-y-auto rounded-xl border border-hairline p-4 text-mute">
               {attempt.transcript}
             </pre>
@@ -161,12 +179,14 @@ function DrawerBody({ attempt, onClose }: { attempt: Attempt; onClose: () => voi
 
       {attempt.postCall && (
         <section>
-          <span className="tag mb-2 block !text-[10px]">Datos posteriores · extraídos por la IA</span>
+          <span className="tag mb-2 block !text-[10px]">
+            {t({ en: "Post-call data · extracted by the AI", es: "Datos posteriores · extraídos por la IA" })}
+          </span>
           <div className="flex flex-col">
             {attempt.postCall.map((f) => (
-              <div key={f.label} className="flex items-baseline justify-between gap-4 border-t border-hairline py-2">
-                <span className="text-[12px] text-mute">{f.label}</span>
-                <span className="text-right font-mono text-[12px]">{f.value}</span>
+              <div key={f.label.en} className="flex items-baseline justify-between gap-4 border-t border-hairline py-2">
+                <span className="text-[12px] text-mute">{t(f.label)}</span>
+                <span className="text-right font-mono text-[12px]">{t(f.value)}</span>
               </div>
             ))}
           </div>
@@ -174,7 +194,7 @@ function DrawerBody({ attempt, onClose }: { attempt: Attempt; onClose: () => voi
       )}
 
       <section>
-        <span className="tag mb-2 block !text-[10px]">Variables enviadas</span>
+        <span className="tag mb-2 block !text-[10px]">{t({ en: "Variables sent", es: "Variables enviadas" })}</span>
         <pre className="rounded-xl border border-hairline p-4 text-mute">
           {JSON.stringify(attempt.variables, null, 2)}
         </pre>
@@ -187,6 +207,7 @@ function DrawerBody({ attempt, onClose }: { attempt: Attempt; onClose: () => voi
 function FakePlayer({ duration }: { duration: number }) {
   const [playing, setPlaying] = useState(false);
   const [pos, setPos] = useState(0);
+  const t = useT();
 
   useEffect(() => {
     if (!playing) return;
@@ -204,11 +225,11 @@ function FakePlayer({ duration }: { duration: number }) {
 
   return (
     <section>
-      <span className="tag mb-2 block !text-[10px]">Grabación</span>
+      <span className="tag mb-2 block !text-[10px]">{t({ en: "Recording", es: "Grabación" })}</span>
       <div className="flex items-center gap-3 rounded-xl border border-hairline p-3">
         <button
           type="button"
-          aria-label={playing ? "Pausar" : "Reproducir"}
+          aria-label={playing ? t({ en: "Pause", es: "Pausar" }) : t({ en: "Play", es: "Reproducir" })}
           onClick={() => {
             if (pos >= duration) setPos(0);
             setPlaying((v) => !v);
@@ -240,7 +261,9 @@ function FakePlayer({ duration }: { duration: number }) {
           {mmss(pos)} / {mmss(duration)}
         </span>
       </div>
-      <p className="mt-1.5 text-[11px] text-mute">Reproducción simulada: la demo no incluye audio.</p>
+      <p className="mt-1.5 text-[11px] text-mute">
+        {t({ en: "Simulated playback: the demo has no audio.", es: "Reproducción simulada: el demo no incluye audio." })}
+      </p>
     </section>
   );
 }
